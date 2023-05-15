@@ -10,6 +10,7 @@ plots/
 data/
 .DS_Store
 .idea/
+connect.ini
 
 # User-specific stuff
 .idea/**/workspace.xml
