@@ -4,10 +4,7 @@ import ftplib
 class CME:
 
     def __init__(self, host, user, passwd):
-        self.host = host
-        self.user = user
-        self.passwd = passwd
-        self.cme = ftplib.FTP(host=self.host, user=self.user, passwd=self.passwd)
+        self.cme = ftplib.FTP(host=host, user=user, passwd=passwd)
 
     def get_dailybulletin_list(self):
         files = []
