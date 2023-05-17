@@ -3,8 +3,6 @@ import configparser
 import psycopg2
 from psycopg2 import sql
 
-from constants.enums import Setting
-
 
 class StorageDb:
 
@@ -33,41 +31,31 @@ class StorageDb:
             dbname=dbname,
             user=user,
             password=password)
+        self.connection.set_session(autocommit=True)
 
     def get_cot_report_type(self):
-        cursor = self.connection.cursor()
-        cursor.execute('SELECT * FROM cot_report_type')
-        records = cursor.fetchall()
-        cursor.close()
-        self.connection.close()
+        with self.connection.cursor() as cursor:
+            cursor.execute('SELECT * FROM cot_report_type')
+            records = cursor.fetchall()
         return records
 
     def get_setting(self, param_name):
-        cursor = self.connection.cursor()
-        select = "SELECT trim(param_value) FROM setting WHERE param_name = %s"
-
-        cursor.execute(select, (param_name,))
-        records = cursor.fetchone()
-        cursor.close()
+        with self.connection.cursor() as cursor:
+            select = "SELECT trim(param_value) FROM setting WHERE param_name = %s"
+            cursor.execute(select, (param_name,))
+            records = cursor.fetchone()
         return records[0]
 
-    def get_setting_cme(self):
-        records = {
-            Setting.CME_FTP_HOST.value: self.get_setting(Setting.CME_FTP_HOST),
-            Setting.CME_FTP_USER.value: self.get_setting(Setting.CME_FTP_USER),
-            Setting.CME_FTP_PASSWORD.value: self.get_setting(Setting.CME_FTP_PASSWORD)}
+    def get_dailybulletin_reports_by_names(self, names):
+        with self.connection.cursor() as cursor:
+            select = "SELECT id, trim(name) FROM dailybulletin_reports WHERE name IN %s"
+            cursor.execute(select, (tuple(names),))
+            records = cursor.fetchall()
         return records
 
-    def insert_dailybulletin_reports(self):
+    def insert_dailybulletin_reports(self, name, date, index, path):
         with self.connection.cursor() as cursor:
-            self.connection.autocommit = True
-            name = 'sss'
-            date = '20120101'
-            index = '001'
-            path = 'sss/sss'
-            values = [
-                (name, date, index, path)
-            ]
+            values = [(name, date, index, path)]
             insert = \
                 sql.SQL('INSERT INTO dailybulletin_reports (name, date, index, path) VALUES {}'). \
                     format(sql.SQL(',').join(map(sql.Literal, values)))

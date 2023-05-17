@@ -5,6 +5,8 @@ class Setting(Enum):
     CME_FTP_HOST = "CME_FTP_HOST"
     CME_FTP_USER = "CME_FTP_USER"
     CME_FTP_PASSWORD = "CME_FTP_PASSWORD"
+    HOST_SAVE_PATH = "HOST_SAVE_PATH"
+    HOST_ADDRESS = "HOST_ADDRESS"
 
 
 class ModeExecution(Enum):

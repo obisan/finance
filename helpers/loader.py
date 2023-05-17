@@ -2,7 +2,7 @@ import pandas as pd
 
 from helpers.database import mysql_helper
 from helpers.downloader_cot import Downloader_cot
-from utils import cl_utils
+from src.utils import cl_utils
 
 
 class Loader:

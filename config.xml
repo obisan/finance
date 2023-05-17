@@ -1,4 +1,4 @@
 <config>
-    <mode></mode>
-
+    <mode>DAILYBULLETIN_SYNC</mode>
+    <connect>connect.ini</connect>
 </config>

@@ -1,19 +1,21 @@
 import sys
 
+from bs4 import BeautifulSoup
+
 from db.db_storage import StorageDb
 from scenario.dailybulletinsync import DailybulletinSync
 
 if __name__ == '__main__':
-    # fd = open('config.xml', 'r')
-    # xml_file = fd.read()
-    # soup = BeautifulSoup(xml_file, 'lxml')
-    # for tag in soup.findAll("item"):
-    #     print(tag)
-    #     print(tag["name"])
-    #     print(tag.text)
-    # fd.close()
+    # sys.argv[0] path.py
+    # sys.argv[1] --config
+    # sys.argv[2] config.xml
 
-    storageDb = StorageDb(filename='connect.ini')
+    with open(sys.argv[2], 'r') as file:
+        xml_data = file.read()
+        soup = BeautifulSoup(xml_data, "xml")
+        credentials_filename = soup.find("config").find("connect").text
+
+    storageDb = StorageDb(filename=credentials_filename)
 
     dailybulletinSync = DailybulletinSync(storageDb)
     dailybulletinSync.sync_exec()
