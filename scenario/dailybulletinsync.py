@@ -47,17 +47,24 @@ class DailybulletinSync:
                 key=lambda x: x[1])
 
         for item in results:
-            target = item[1]
-            index = bisect.bisect_left(dailybulletin_reports_in_db_sorted, target, )
+            try:
+                target = item[1]
+                index = bisect.bisect_left(dailybulletin_reports_in_db_sorted, target, )
 
-            if index != len(dailybulletin_reports_in_db_sorted) \
-                    and dailybulletin_reports_in_db_sorted[index] == target:
-                print(f"Found: {dailybulletin_reports_in_db_sorted[index]}")
-                continue
-            else:
-                print(f"Not found {target}")
+                if index != len(dailybulletin_reports_in_db_sorted) \
+                        and dailybulletin_reports_in_db_sorted[index] == target:
+                    print(f"Found: {dailybulletin_reports_in_db_sorted[index]}")
+                    continue
+                else:
+                    print(f"Not found {target}")
 
-            destination_path = '/'.join([self.host_save_path, item[2]])
+                destination = '/'.join([self.host_save_path, item[2]])
 
-            # self.cme.download_dailybulletin_by_date(item[0], destination_path)
-            # self.storage_db.insert_dailybulletin_reports(name=item[1], date=item[3], index=item[4], path=destination_path)
+                self.cme.download_dailybulletin_by_date(item[0], destination)
+                self.storage_db.insert_dailybulletin_reports(name=item[1], date=item[3], index=item[4],
+                                                             path=destination)
+
+                print(f"Loaded & Saved: {target}")
+            except Exception as e:
+                print("An exception occurred:", e)
+                print(f"    {item}")
