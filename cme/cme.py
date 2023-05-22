@@ -4,6 +4,8 @@ import ftplib
 class CME:
 
     def __init__(self, host, user, passwd):
+        # url = "https://www.cmegroup.com/ftp/bulletin/DailyBulletin_pdf_20211104213.zip"
+        # url = "ftp://ftp.cmegroup.com/bulletin/DailyBulletin_pdf_20210901168.zip"
         self.cme = ftplib.FTP(host=host, user=user, passwd=passwd)
 
     def get_dailybulletin_list(self):

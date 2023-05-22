@@ -11,7 +11,6 @@ setup(
         "beautifulsoup4 == 4.11.1",
         "matplotlib == 3.5.3",
         "matplotlib == 3.7.0",
-        "pandas == 1.3.5",
         "pandas == 1.5.3",
         "psycopg2 == 2.9.3",
         "PyMySQL == 1.0.2",

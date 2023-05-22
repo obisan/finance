@@ -38,7 +38,4 @@ class Loader:
 
         df = pd.read_csv(self.path_data)
 
-        # for line in df.values:
-        #    print(line)
-
         return 0
