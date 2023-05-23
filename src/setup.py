@@ -9,13 +9,13 @@ setup(
     packages=find_packages(),
     install_requires=[
         "beautifulsoup4 == 4.11.1",
-        "matplotlib == 3.5.3",
-        "matplotlib == 3.7.0",
-        "pandas == 1.5.3",
+        "matplotlib == 3.7.1",
+        "pandas == 2.0.1",
         "psycopg2 == 2.9.3",
         "PyMySQL == 1.0.2",
         "Requests == 2.30.0",
         "setuptools == 65.6.3",
+        "lxml == 4.9.1",
     ],
     # Other optional configuration options
     # ...
