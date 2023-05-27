@@ -46,10 +46,24 @@ class StorageDb:
             records = cursor.fetchone()
         return records[0]
 
+    def get_dailybulletin_reports(self):
+        with self.connection.cursor() as cursor:
+            select = "SELECT trim(name), trim(path) FROM dailybulletin_reports"
+            cursor.execute(select, )
+            records = cursor.fetchall()
+        return records
+
     def get_dailybulletin_reports_by_names(self, names):
         with self.connection.cursor() as cursor:
             select = "SELECT id, trim(name) FROM dailybulletin_reports WHERE name IN %s"
             cursor.execute(select, (tuple(names),))
+            records = cursor.fetchall()
+        return records
+
+    def get_dailybulletin_sections_by_id(self, id):
+        with self.connection.cursor() as cursor:
+            select = "SELECT id, trim(name) FROM dailybulletin_sections WHERE id IN %s"
+            cursor.execute(select, (tuple(id),))
             records = cursor.fetchall()
         return records
 

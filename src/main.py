@@ -2,7 +2,9 @@ import sys
 
 from bs4 import BeautifulSoup
 
+from constants.enums import ModeExecution
 from db.db_storage import StorageDb
+from scenario.dailybulletinanalysis import DailyBulletinAnalysis
 from scenario.dailybulletinsync import DailybulletinSync
 
 if __name__ == '__main__':
@@ -14,11 +16,19 @@ if __name__ == '__main__':
         xml_data = file.read()
         soup = BeautifulSoup(xml_data, "xml")
         credentials_filename = soup.find("config").find("connect").text
+        mode = soup.find("config").find("mode").text
 
-    storageDb = StorageDb(filename=credentials_filename)
+    match mode:
+        case ModeExecution.DAILYBULLETIN_SYNC.value:
+            storageDb = StorageDb(filename=credentials_filename)
 
-    dailybulletinSync = DailybulletinSync(storageDb)
-    dailybulletinSync.sync_exec()
+            dailybulletinSync = DailybulletinSync(storageDb)
+            dailybulletinSync.sync_exec()
+        case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
+            storageDb = StorageDb(filename=credentials_filename)
+
+            dailybulletinAnalysis = DailyBulletinAnalysis(storageDb)
+            dailybulletinAnalysis.analysis()
 
     # ============================================================================
     # connection = mysql_helper()

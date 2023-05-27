@@ -11,3 +11,9 @@ class Setting(Enum):
 
 class ModeExecution(Enum):
     DAILYBULLETIN_SYNC = "DAILYBULLETIN_SYNC"
+    DAILYBULLETIN_ANALYSIS = "DAILYBULLETIN_ANALYSIS"
+
+
+class DailyBulletinSection(Enum):
+    EURO_DOLLAR_CALL = 53
+    EURO_DOLLAR_PUT = 54
