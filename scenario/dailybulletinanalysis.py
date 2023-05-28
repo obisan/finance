@@ -14,8 +14,9 @@ from constants.enums import DailyBulletinSection
 
 class DailyBulletinAnalysis:
 
-    def __init__(self, storage_db):
+    def __init__(self, storage_db, logger=None):
         self.storage_db = storage_db
+        self.logger = logger
         self.delete = False
 
     def analysis(self):
@@ -42,10 +43,7 @@ class DailyBulletinAnalysis:
 
             for section in self.storage_db.get_dailybulletin_sections_by_id(sections)[:1]:
                 pdf = '\\'.join([target_dir, section[1]]) + '.pdf'
-                # print(pdf)
-                # print()
                 self.exec_analysis_pdf_1(pdf)
-                # self.exec_analysis_pdf_2(pdf)
 
             # Delete the target directory after use
             if self.delete:
@@ -68,7 +66,7 @@ class DailyBulletinAnalysis:
 
                 if ss_extracted_text.find(target_text.encode()) != -1:
                     for line in ss_extracted_text.split("\n".encode()):
-                        print(line)
+                        print(line.decode())
                     break
 
                 output_string.truncate(0)

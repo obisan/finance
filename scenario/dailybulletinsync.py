@@ -7,7 +7,7 @@ from constants.enums import Setting
 
 class DailybulletinSync:
 
-    def __init__(self, storage_db):
+    def __init__(self, storage_db, logger=None):
         host = storage_db.get_setting(Setting.CME_FTP_HOST.value)
         user = storage_db.get_setting(Setting.CME_FTP_USER.value)
         passwd = storage_db.get_setting(Setting.CME_FTP_PASSWORD.value)
@@ -15,6 +15,7 @@ class DailybulletinSync:
         self.host_save_path = storage_db.get_setting(Setting.HOST_SAVE_PATH.value)
         self.host_address = storage_db.get_setting(Setting.HOST_ADDRESS.value)
         self.cme = CME(host, user, passwd)
+        self.logger = logger
 
     def sync_exec(self):
         # bulletin/DailyBulletin_pdf_2023021329.zip
@@ -44,19 +45,18 @@ class DailybulletinSync:
                 [record[1] for record in
                  self.storage_db.get_dailybulletin_reports_by_names(
                      list(map(lambda x: x[1] if isinstance(x, list) else x, results)))],
-                key=lambda x: x[1])
+                key=lambda x: x)
 
         for item in results:
             try:
+
                 target = item[1]
                 index = bisect.bisect_left(dailybulletin_reports_in_db_sorted, target, )
 
                 if index != len(dailybulletin_reports_in_db_sorted) \
                         and dailybulletin_reports_in_db_sorted[index] == target:
-                    print(f"Found: {dailybulletin_reports_in_db_sorted[index]}")
+                    self.logger.debug(f"Found: {dailybulletin_reports_in_db_sorted[index]}")
                     continue
-                else:
-                    print(f"Not found {target}")
 
                 destination = '/'.join([self.host_save_path, item[2]])
 
@@ -64,7 +64,7 @@ class DailybulletinSync:
                 self.storage_db.insert_dailybulletin_reports(name=item[1], date=item[3], index=item[4],
                                                              path=destination)
 
-                print(f"Loaded & Saved: {target}")
+                self.logger.info(f"Loaded & Saved: {target}")
             except Exception as e:
-                print("An exception occurred:", e)
-                print(f"    {item}")
+                self.logger.critical(f"An exception occurred: {repr(e)}")
+                self.logger.critical(f"    {item}")

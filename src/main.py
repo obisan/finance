@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 
 from constants.enums import ModeExecution
 from db.db_storage import StorageDb
+from log.Logger import Logger
 from scenario.dailybulletinanalysis import DailyBulletinAnalysis
 from scenario.dailybulletinsync import DailybulletinSync
 
@@ -12,23 +13,29 @@ if __name__ == '__main__':
     # sys.argv[1] --config
     # sys.argv[2] config.xml
 
-    with open(sys.argv[2], 'r') as file:
-        xml_data = file.read()
-        soup = BeautifulSoup(xml_data, "xml")
-        credentials_filename = soup.find("config").find("connect").text
-        mode = soup.find("config").find("mode").text
+    try:
 
-    match mode:
-        case ModeExecution.DAILYBULLETIN_SYNC.value:
-            storageDb = StorageDb(filename=credentials_filename)
+        with open(sys.argv[2], 'r') as file:
+            xml_data = file.read()
+            soup = BeautifulSoup(xml_data, "xml")
+            credentials_filename = soup.find("config").find("connect").text
+            mode = soup.find("config").find("mode").text
 
-            dailybulletinSync = DailybulletinSync(storageDb)
-            dailybulletinSync.sync_exec()
-        case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
-            storageDb = StorageDb(filename=credentials_filename)
+            match mode:
+                # case ModeExecution.DAILYBULLETIN_SYNC.value:
+                case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
+                    storageDb = StorageDb(filename=credentials_filename)
 
-            dailybulletinAnalysis = DailyBulletinAnalysis(storageDb)
-            dailybulletinAnalysis.analysis()
+                    dailybulletinSync = DailybulletinSync(storageDb, Logger())
+                    dailybulletinSync.sync_exec()
+                case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
+                    storageDb = StorageDb(filename=credentials_filename)
+
+                    dailybulletinAnalysis = DailyBulletinAnalysis(storageDb, Logger())
+                    dailybulletinAnalysis.analysis()
+
+    except Exception as e:
+        Logger().critical(e)
 
     # ============================================================================
     # connection = mysql_helper()
