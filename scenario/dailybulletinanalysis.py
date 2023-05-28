@@ -1,6 +1,13 @@
 import os
 import shutil
 import zipfile
+from io import BytesIO
+
+import PyPDF2
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfpage import PDFPage
 
 from constants.enums import DailyBulletinSection
 
@@ -12,7 +19,7 @@ class DailyBulletinAnalysis:
         self.delete = False
 
     def analysis(self):
-        for line in self.storage_db.get_dailybulletin_reports()[:1]:
+        for line in self.storage_db.get_dailybulletin_reports()[1:2]:
             # r'\\xxx\storage\finance_storage\DailyBulletin\test\DailyBulletin_pdf_202301031.zip'
             zip_file_path = line[1]
 
@@ -33,10 +40,64 @@ class DailyBulletinAnalysis:
 
             sections = [DailyBulletinSection.EURO_DOLLAR_CALL.value, DailyBulletinSection.EURO_DOLLAR_PUT.value]
 
-            for line in self.storage_db.get_dailybulletin_sections_by_id(sections)[:1]:
-                pdf = '\\'.join([target_dir, line[1]]) + '.pdf'
-                print(pdf)
+            for section in self.storage_db.get_dailybulletin_sections_by_id(sections)[:1]:
+                pdf = '\\'.join([target_dir, section[1]]) + '.pdf'
+                # print(pdf)
+                # print()
+                self.exec_analysis_pdf_1(pdf)
+                # self.exec_analysis_pdf_2(pdf)
 
             # Delete the target directory after use
             if self.delete:
                 shutil.rmtree(target_dir)
+
+    def exec_analysis_pdf_1(self, pdf_path):
+        with open(pdf_path, 'rb') as file:
+            resource_manager = PDFResourceManager()
+            output_string = BytesIO()  # Use BytesIO for binary output
+            converter = TextConverter(resource_manager, output_string, laparams=LAParams())
+            interpreter = PDFPageInterpreter(resource_manager, converter)
+
+            target_text = "SR1 FUT"
+            # print(target_text)
+
+            for page in PDFPage.get_pages(file):
+                interpreter.process_page(page)
+                # ss_extracted_text = output_string.getvalue().decode()  # Decode binary data to string
+                ss_extracted_text = output_string.getvalue()
+
+                if ss_extracted_text.find(target_text.encode()) != -1:
+                    for line in ss_extracted_text.split("\n".encode()):
+                        print(line)
+                    break
+
+                output_string.truncate(0)
+                output_string.seek(0)
+
+            extracted_text = ""
+
+            converter.close()
+            output_string.close()
+
+            return extracted_text
+
+        def exec_analysis_pdf_2(self, pdf_path):
+            with open(pdf_path, 'rb') as file:
+                pdf_reader = PyPDF2.PdfFileReader(file)
+                num_pages = pdf_reader.numPages
+                extracted_text = ''
+
+                target_line = 'EURO DOLLAR CALL OPTIONS'
+
+                for page_number in range(num_pages)[:1]:
+                    page = pdf_reader.getPage(page_number)
+                    content = page.extract_text()
+
+                    if target_line in content:
+                        lines = content.split('\n')
+                        for line in lines:
+                            print(line)
+
+                    # extracted_text += page.extract_text()
+
+                return extracted_text
