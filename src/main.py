@@ -22,8 +22,7 @@ if __name__ == '__main__':
             mode = soup.find("config").find("mode").text
 
             match mode:
-                # case ModeExecution.DAILYBULLETIN_SYNC.value:
-                case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
+                case ModeExecution.DAILYBULLETIN_SYNC.value:
                     storageDb = StorageDb(filename=credentials_filename)
 
                     dailybulletinSync = DailybulletinSync(storageDb, Logger())
