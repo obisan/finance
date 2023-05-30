@@ -3,7 +3,7 @@ import shutil
 import zipfile
 from io import BytesIO
 
-import PyPDF2
+# import PyPDF2
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -79,23 +79,23 @@ class DailyBulletinAnalysis:
 
             return extracted_text
 
-        def exec_analysis_pdf_2(self, pdf_path):
-            with open(pdf_path, 'rb') as file:
-                pdf_reader = PyPDF2.PdfFileReader(file)
-                num_pages = pdf_reader.numPages
-                extracted_text = ''
-
-                target_line = 'EURO DOLLAR CALL OPTIONS'
-
-                for page_number in range(num_pages)[:1]:
-                    page = pdf_reader.getPage(page_number)
-                    content = page.extract_text()
-
-                    if target_line in content:
-                        lines = content.split('\n')
-                        for line in lines:
-                            print(line)
-
-                    # extracted_text += page.extract_text()
-
-                return extracted_text
+        # def exec_analysis_pdf_2(self, pdf_path):
+        #     with open(pdf_path, 'rb') as file:
+        #         pdf_reader = PyPDF2.PdfFileReader(file)
+        #         num_pages = pdf_reader.numPages
+        #         extracted_text = ''
+        #
+        #         target_line = 'EURO DOLLAR CALL OPTIONS'
+        #
+        #         for page_number in range(num_pages)[:1]:
+        #             page = pdf_reader.getPage(page_number)
+        #             content = page.extract_text()
+        #
+        #             if target_line in content:
+        #                 lines = content.split('\n')
+        #                 for line in lines:
+        #                     print(line)
+        #
+        #             # extracted_text += page.extract_text()
+        #
+        #         return extracted_text
