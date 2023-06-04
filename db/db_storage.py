@@ -1,7 +1,43 @@
 import configparser
 
-import psycopg2
-from psycopg2 import sql
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+Base = declarative_base()
+
+
+class CotReportType(Base):
+    __tablename__ = 'cot_report_type'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+
+class Setting(Base):
+    __tablename__ = 'setting'
+
+    id = Column(Integer, primary_key=True)
+    param_name = Column(String)
+    param_value = Column(String)
+
+
+class DailyBulletinReports(Base):
+    __tablename__ = 'dailybulletin_reports'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32))
+    date = Column(String)
+    index = Column(Integer)
+    path = Column(String(255))
+
+
+class DailyBulletinSections(Base):
+    __tablename__ = 'dailybulletin_sections'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
 
 
 class StorageDb:
@@ -25,52 +61,32 @@ class StorageDb:
         self._init_from_params(host, port, dbname, user, password)
 
     def _init_from_params(self, host, port, dbname, user, password):
-        self.connection = psycopg2.connect(
-            host=host,
-            port=port,
-            dbname=dbname,
-            user=user,
-            password=password)
-        self.connection.set_session(autocommit=True)
+        connection_string = f'postgresql://{user}:{password}@{host}:{port}/{dbname}'
+        self.engine = create_engine(connection_string)
+        self.session = sessionmaker(bind=self.engine)
 
     def get_cot_report_type(self):
-        with self.connection.cursor() as cursor:
-            cursor.execute('SELECT * FROM cot_report_type')
-            records = cursor.fetchall()
-        return records
+        return self.session().query(CotReportType).all()
 
     def get_setting(self, param_name):
-        with self.connection.cursor() as cursor:
-            select = "SELECT trim(param_value) FROM setting WHERE param_name = %s"
-            cursor.execute(select, (param_name,))
-            records = cursor.fetchone()
-        return records[0]
+        return self.session().query(Setting.param_value).filter_by(param_name=param_name).scalar()
 
     def get_dailybulletin_reports(self):
-        with self.connection.cursor() as cursor:
-            select = "SELECT trim(name), trim(path) FROM dailybulletin_reports"
-            cursor.execute(select, )
-            records = cursor.fetchall()
-        return records
+        return self.session().query(DailyBulletinReports.name, DailyBulletinReports.path).all()
 
     def get_dailybulletin_reports_by_names(self, names):
-        with self.connection.cursor() as cursor:
-            select = "SELECT id, trim(name) FROM dailybulletin_reports WHERE name IN %s"
-            cursor.execute(select, (tuple(names),))
-            records = cursor.fetchall()
-        return records
+        return self.session().query(
+            DailyBulletinReports.id,
+            DailyBulletinReports.name). \
+            filter(DailyBulletinReports.name.in_(names)).all()
 
-    def get_dailybulletin_sections_by_id(self, id):
-        with self.connection.cursor() as cursor:
-            select = "SELECT id, trim(name) FROM dailybulletin_sections WHERE id IN %s"
-            cursor.execute(select, (tuple(id),))
-            records = cursor.fetchall()
-        return records
+    def get_dailybulletin_sections_by_id(self, ids):
+        return self.session().query(
+            DailyBulletinSections.id,
+            func.replace(DailyBulletinSections.name, ' ', '')). \
+            filter(DailyBulletinSections.id.in_(ids)).all()
 
     def insert_dailybulletin_reports(self, name, date, index, path):
-        with self.connection.cursor() as cursor:
-            values = [(name, date, index, path)]
-            insert = \
-                sql.SQL('INSERT INTO dailybulletin_reports (name, date, index, path) VALUES {}'). \
-                    format(sql.SQL(',').join(map(sql.Literal, values)))
-            cursor.execute(insert)
+        report = DailyBulletinReports(name=name, date=date, index=index, path=path)
+        self.session().add(report)
+        self.session().commit()

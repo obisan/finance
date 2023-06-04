@@ -43,6 +43,7 @@ class DailyBulletinAnalysis:
 
             for section in self.storage_db.get_dailybulletin_sections_by_id(sections)[:1]:
                 pdf = '\\'.join([target_dir, section[1]]) + '.pdf'
+                print(pdf)
                 self.exec_analysis_pdf_1(pdf)
 
             # Delete the target directory after use
