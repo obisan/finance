@@ -69,15 +69,18 @@ class StorageDb:
         return self.session().query(CotReportType).all()
 
     def get_setting(self, param_name):
-        return self.session().query(Setting.param_value).filter_by(param_name=param_name).scalar()
+        return self.session().query(
+            func.replace(Setting.param_value, ' ', '')).filter_by(param_name=param_name).scalar()
 
     def get_dailybulletin_reports(self):
-        return self.session().query(DailyBulletinReports.name, DailyBulletinReports.path).all()
+        return self.session().query(
+            DailyBulletinReports.name,
+            DailyBulletinReports.path).all()
 
     def get_dailybulletin_reports_by_names(self, names):
         return self.session().query(
             DailyBulletinReports.id,
-            DailyBulletinReports.name). \
+            func.replace(DailyBulletinReports.name, ' ', '')). \
             filter(DailyBulletinReports.name.in_(names)).all()
 
     def get_dailybulletin_sections_by_id(self, ids):
