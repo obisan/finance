@@ -50,7 +50,6 @@ class DailybulletinSync:
 
         for item in results:
             try:
-
                 target = item[1]
                 index = bisect.bisect_left(dailybulletin_reports_in_db_sorted, target, )
 

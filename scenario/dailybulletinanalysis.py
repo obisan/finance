@@ -41,7 +41,7 @@ class DailyBulletinAnalysis:
 
             sections = [DailyBulletinSection.EURO_DOLLAR_CALL.value, DailyBulletinSection.EURO_DOLLAR_PUT.value]
 
-            for section in self.storage_db.get_dailybulletin_sections_by_id(sections)[:1]:
+            for section in self.storage_db.get_dailybulletin_sections_by_section(sections)[:1]:
                 pdf = '\\'.join([target_dir, section[1]]) + '.pdf'
                 print(pdf)
                 self.exec_analysis_pdf_1(pdf)
