@@ -31,13 +31,41 @@ class DailyBulletinReports(Base):
     date = Column(String)
     index = Column(Integer)
     path = Column(String(255))
+    status = Column(String(16))
+
+
+class DailyBulletinReportsStatus(Base):
+    __tablename__ = 'dailybulletin_reports'
+
+    status = Column(String(16), primary_key=True)
 
 
 class DailyBulletinSections(Base):
     __tablename__ = 'dailybulletin_sections'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
+    section = Column(String(8), primary_key=True)
+    type = Column(String(8))
+
+
+class DailyBulletinSectionsNames(Base):
+    __tablename__ = 'dailybulletin_sections_names'
+
+    section = Column(String(8), primary_key=True)
+    name = Column(String(255))
+
+
+class DailyBulletinSectionsSubsections(Base):
+    __tablename__ = 'dailybulletin_sections_subsections'
+
+    section = Column(String(8), primary_key=True)
+    seq = Column(Integer, primary_key=True)
+    name = Column(String(255))
+
+
+class DailyBulletinSectionsTypes(Base):
+    __tablename__ = 'dailybulletin_sections_types'
+
+    type = Column(String(8), primary_key=True)
 
 
 class StorageDb:
@@ -74,8 +102,8 @@ class StorageDb:
 
     def get_dailybulletin_reports(self):
         return self.session().query(
-            DailyBulletinReports.name,
-            DailyBulletinReports.path).all()
+            func.replace(DailyBulletinReports.name, ' ', ''),
+            func.replace(DailyBulletinReports.path, ' ', '')).all()
 
     def get_dailybulletin_reports_by_names(self, names):
         return self.session().query(
@@ -83,13 +111,13 @@ class StorageDb:
             func.replace(DailyBulletinReports.name, ' ', '')). \
             filter(DailyBulletinReports.name.in_(names)).all()
 
-    def get_dailybulletin_sections_by_id(self, ids):
+    def get_dailybulletin_sections_by_section(self, sections):
         return self.session().query(
-            DailyBulletinSections.id,
+            DailyBulletinSectionsSubsections.section,
             func.replace(DailyBulletinSections.name, ' ', '')). \
-            filter(DailyBulletinSections.id.in_(ids)).all()
+            filter(DailyBulletinSectionsSubsections.section.in_(sections)).all()
 
-    def insert_dailybulletin_reports(self, name, date, index, path):
-        report = DailyBulletinReports(name=name, date=date, index=index, path=path)
+    def insert_dailybulletin_reports(self, name, date, index, path, status):
+        report = DailyBulletinReports(name=name, date=date, index=index, path=path, status=status)
         self.session().add(report)
         self.session().commit()

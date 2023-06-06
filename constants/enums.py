@@ -15,5 +15,12 @@ class ModeExecution(Enum):
 
 
 class DailyBulletinSection(Enum):
-    EURO_DOLLAR_CALL = 53
-    EURO_DOLLAR_PUT = 54
+    EURO_DOLLAR_CALL = 51
+    EURO_DOLLAR_PUT = 52
+
+
+class DailybulletinReportsStatus(Enum):
+    PROCESSED = 'processed'
+    PREPROCESSED = 'preprocessed'
+    NOT_DOWNLOADED = 'not_downloaded'
+    DOWNLOADED = 'downloaded'

@@ -1,3 +1,3 @@
-from .enums import Setting, ModeExecution
+from .enums import Setting, ModeExecution, DailybulletinReportsStatus
 
-__all__ = ['Setting', 'ModeExecution']
+__all__ = ['Setting', 'ModeExecution', 'DailybulletinReportsStatus']
