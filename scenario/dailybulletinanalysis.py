@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 import zipfile
 from io import BytesIO
 
@@ -22,29 +23,40 @@ class DailyBulletinAnalysis:
     def analysis(self):
         for line in self.storage_db.get_dailybulletin_reports()[1:2]:
             # r'\\xxx\storage\finance_storage\DailyBulletin\test\DailyBulletin_pdf_202301031.zip'
-            zip_file_path = line[1]
+            bulletin_name = line[0]
+            bulletin_filepath = line[1]
 
             # Calculate the base directory from the ZIP file path
-            base_dir = os.path.dirname(zip_file_path)
+            bulletin_dir = os.path.dirname(bulletin_filepath)
 
             # Calculate the target directory based on the ZIP file name
-            zip_file_name = os.path.basename(zip_file_path)
-            target_dir_name = os.path.splitext(zip_file_name)[0]
-            target_dir = os.path.join(base_dir, target_dir_name)
+            target_dir = os.path.join(bulletin_dir, bulletin_name)
 
             # Create the target directory if it doesn't exist
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
 
-            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            with zipfile.ZipFile(bulletin_filepath, 'r') as zip_ref:
                 zip_ref.extractall(target_dir)
 
-            sections = [DailyBulletinSection.EURO_DOLLAR_CALL.value, DailyBulletinSection.EURO_DOLLAR_PUT.value]
+            sections = [str(DailyBulletinSection.EURO_DOLLAR_CALL.value)]
 
-            for section in self.storage_db.get_dailybulletin_sections_by_section(sections)[:1]:
-                pdf = '\\'.join([target_dir, section[1]]) + '.pdf'
-                print(pdf)
-                self.exec_analysis_pdf_1(pdf)
+            for section in self.storage_db.get_dailybulletin_sections_by_section(sections):
+                section_name = section[1]
+                # section_filename = '\\'.join([target_dir, section_name]) + '.pdf'
+                section_filename_pdf = os.path.join(target_dir, section_name) + '.pdf'
+                section_filename_txt = os.path.join(target_dir, section_name) + '.txt'
+                if os.path.exists(section_filename_pdf):
+                    print(section_filename_pdf)
+                    # section_filename = os.path.join(output_directory, unzipped_file, pdf_filename)
+                    output = subprocess.check_output(
+                        "Rscript read_pdf.R {} {}".format(section_filename_pdf, section_filename_txt))
+                    output = output.decode('utf-8')
+
+                    os.remove(section_filename_txt)
+
+                    # print(output)
+                    # self.exec_analysis_pdf_1(section_filename_pdf)
 
             # Delete the target directory after use
             if self.delete:
@@ -79,24 +91,3 @@ class DailyBulletinAnalysis:
             output_string.close()
 
             return extracted_text
-
-        # def exec_analysis_pdf_2(self, pdf_path):
-        #     with open(pdf_path, 'rb') as file:
-        #         pdf_reader = PyPDF2.PdfFileReader(file)
-        #         num_pages = pdf_reader.numPages
-        #         extracted_text = ''
-        #
-        #         target_line = 'EURO DOLLAR CALL OPTIONS'
-        #
-        #         for page_number in range(num_pages)[:1]:
-        #             page = pdf_reader.getPage(page_number)
-        #             content = page.extract_text()
-        #
-        #             if target_line in content:
-        #                 lines = content.split('\n')
-        #                 for line in lines:
-        #                     print(line)
-        #
-        #             # extracted_text += page.extract_text()
-        #
-        #         return extracted_text

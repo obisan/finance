@@ -24,3 +24,7 @@ class DailybulletinReportsStatus(Enum):
     PREPROCESSED = 'preprocessed'
     NOT_DOWNLOADED = 'not_downloaded'
     DOWNLOADED = 'downloaded'
+
+
+class CME_const(Enum):
+    success = '226 Transfer complete.'

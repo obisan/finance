@@ -2,6 +2,7 @@ import bisect
 import re
 
 from cme.cme import CME
+from constants.enums import CME_const
 from constants.enums import DailybulletinReportsStatus
 from constants.enums import Setting
 
@@ -60,12 +61,20 @@ class DailybulletinSync:
 
                 destination = '/'.join([self.host_save_path, item[2]])
 
-                self.cme.download_dailybulletin_by_date(item[0], destination)
-                self.storage_db.insert_dailybulletin_reports(
-                    name=item[1], date=item[3], index=item[4], status=DailybulletinReportsStatus.DOWNLOADED.value,
-                    path=destination)
+                if self.cme.download_dailybulletin_by_date(item[0], destination) == CME_const.success.value:
+                    self.cme.download_dailybulletin_by_date(item[0], destination)
+                    self.storage_db.insert_dailybulletin_reports(
+                        name=item[1], date=item[3], index=item[4],
+                        status=DailybulletinReportsStatus.DOWNLOADED.value,
+                        path=destination)
+                    self.logger.info(f"Loaded & Saved: {target}")
+                else:
+                    self.storage_db.insert_dailybulletin_reports(
+                        name=item[1], date=item[3], index=item[4],
+                        status=DailybulletinReportsStatus.NOT_DOWNLOADED.value,
+                        path=destination)
+                    self.logger.info(f"Try download & save: {target}")
 
-                self.logger.info(f"Loaded & Saved: {target}")
             except Exception as e:
                 self.logger.critical(f"An exception occurred: {repr(e)}")
                 self.logger.critical(f"    {item}")

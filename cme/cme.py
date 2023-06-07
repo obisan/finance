@@ -16,5 +16,5 @@ class CME:
 
     def download_dailybulletin_by_date(self, src, dst):
         with open(dst, "wb") as file:
-            self.cme.retrbinary(f"RETR {src}", file.write)
-        return 0
+            result = self.cme.retrbinary(f"RETR {src}", file.write)
+        return result

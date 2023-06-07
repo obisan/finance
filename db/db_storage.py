@@ -57,6 +57,7 @@ class DailyBulletinSectionsNames(Base):
     __tablename__ = 'dailybulletin_sections_names'
     # Column
     section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
+    seq = Column(Integer, primary_key=True)
     name = Column(String(255))
 
 
@@ -126,16 +127,17 @@ class StorageDb:
     def get_dailybulletin_sections_by_section(self, sections):
         with self.session() as session:
             result = session.query(
-                DailyBulletinSections.section,
-                DailyBulletinSectionsNames.name
+                func.replace(DailyBulletinSections.section, ' ', ''),
+                func.replace(DailyBulletinSectionsNames.name, ' ', '')
             ).join(
                 DailyBulletinSectionsNames,
-                DailyBulletinSectionsSubsections.section == DailyBulletinSectionsNames.section
+                DailyBulletinSections.section == DailyBulletinSectionsNames.section
             ).filter(
                 DailyBulletinSections.section.in_(sections)
             ).order_by(
                 DailyBulletinSections.section,
-                DailyBulletinSectionsSubsections.seq).all()
+                DailyBulletinSectionsNames.seq) \
+                .all()
         return result
 
     def insert_dailybulletin_reports(self, name, date, index, path, status):
