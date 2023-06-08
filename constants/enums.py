@@ -15,8 +15,9 @@ class ModeExecution(Enum):
 
 
 class DailyBulletinSection(Enum):
-    EURO_DOLLAR_CALL = 51
-    EURO_DOLLAR_PUT = 52
+    EURO_FX = 39
+    EURODOLLAR_CALL = 51
+    EURODOLLAR_PUT = 52
 
 
 class DailybulletinReportsStatus(Enum):

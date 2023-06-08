@@ -1,16 +1,10 @@
 import os
+import re
 import shutil
-import subprocess
 import zipfile
-from io import BytesIO
-
-# import PyPDF2
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfpage import PDFPage
 
 from constants.enums import DailyBulletinSection
+from convert.converter import ConverterPDFtoTXT
 
 
 class DailyBulletinAnalysis:
@@ -39,55 +33,30 @@ class DailyBulletinAnalysis:
             with zipfile.ZipFile(bulletin_filepath, 'r') as zip_ref:
                 zip_ref.extractall(target_dir)
 
-            sections = [str(DailyBulletinSection.EURO_DOLLAR_CALL.value)]
+            sections = [str(DailyBulletinSection.EURO_FX.value)]
 
             for section in self.storage_db.get_dailybulletin_sections_by_section(sections):
                 section_name = section[1]
-                # section_filename = '\\'.join([target_dir, section_name]) + '.pdf'
                 section_filename_pdf = os.path.join(target_dir, section_name) + '.pdf'
                 section_filename_txt = os.path.join(target_dir, section_name) + '.txt'
-                if os.path.exists(section_filename_pdf):
-                    print(section_filename_pdf)
-                    # section_filename = os.path.join(output_directory, unzipped_file, pdf_filename)
-                    output = subprocess.check_output(
-                        "Rscript read_pdf.R {} {}".format(section_filename_pdf, section_filename_txt))
-                    output = output.decode('utf-8')
 
-                    os.remove(section_filename_txt)
+                section_content = \
+                    ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).get_string()
 
-                    # print(output)
-                    # self.exec_analysis_pdf_1(section_filename_pdf)
+                pattern = r'^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+\s?[+-]?)\s+(\S+)\s+(\S+)\s+(\S+)\s+(' \
+                          r'\S+)\s+(\d+\s?[+-]?|-{4})\s+(\S+)\s+(\S+)\s+(\S+)$'
+
+                for content in section_content:
+                    matches = re.match(pattern, content)
+                    if matches:
+                        columns = ["STRIKE", "OPEN RANGE", "HIGH", "LOW", "CLOSING RANGE", "SETT.PRICE",
+                                   "PT.CHGE.", "DELTA",
+                                   "EXERCISES", "VOLUME TRADES CLEARED", "OPEN INTEREST", "OPEN INTEREST DELTA",
+                                   "HIGH", "LOW"]
+                        values = matches.groups()
+
+                        table = dict(zip(columns, values))
 
             # Delete the target directory after use
             if self.delete:
                 shutil.rmtree(target_dir)
-
-    def exec_analysis_pdf_1(self, pdf_path):
-        with open(pdf_path, 'rb') as file:
-            resource_manager = PDFResourceManager()
-            output_string = BytesIO()  # Use BytesIO for binary output
-            converter = TextConverter(resource_manager, output_string, laparams=LAParams())
-            interpreter = PDFPageInterpreter(resource_manager, converter)
-
-            target_text = "SR1 FUT"
-            # print(target_text)
-
-            for page in PDFPage.get_pages(file):
-                interpreter.process_page(page)
-                # ss_extracted_text = output_string.getvalue().decode()  # Decode binary data to string
-                ss_extracted_text = output_string.getvalue()
-
-                if ss_extracted_text.find(target_text.encode()) != -1:
-                    for line in ss_extracted_text.split("\n".encode()):
-                        print(line.decode())
-                    break
-
-                output_string.truncate(0)
-                output_string.seek(0)
-
-            extracted_text = ""
-
-            converter.close()
-            output_string.close()
-
-            return extracted_text
