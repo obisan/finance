@@ -1,8 +1,8 @@
 import os
-import re
 import shutil
 import zipfile
 
+from cme import Euro_FX
 from constants.enums import DailyBulletinSection
 from convert.converter import ConverterPDFtoTXT
 
@@ -43,19 +43,8 @@ class DailyBulletinAnalysis:
                 section_content = \
                     ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).get_string()
 
-                pattern = r'^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+\s?[+-]?)\s+(\S+)\s+(\S+)\s+(\S+)\s+(' \
-                          r'\S+)\s+(\d+\s?[+-]?|-{4})\s+(\S+)\s+(\S+)\s+(\S+)$'
-
-                for content in section_content:
-                    matches = re.match(pattern, content)
-                    if matches:
-                        columns = ["STRIKE", "OPEN RANGE", "HIGH", "LOW", "CLOSING RANGE", "SETT.PRICE",
-                                   "PT.CHGE.", "DELTA",
-                                   "EXERCISES", "VOLUME TRADES CLEARED", "OPEN INTEREST", "OPEN INTEREST DELTA",
-                                   "HIGH", "LOW"]
-                        values = matches.groups()
-
-                        table = dict(zip(columns, values))
+                euro_fx = Euro_FX()
+                euro_fx.exec(section_content)
 
             # Delete the target directory after use
             if self.delete:

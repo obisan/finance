@@ -8,6 +8,7 @@ class ConverterPDFtoTXT:
         self.filename_pdf = filename_pdf
         self.filename_txt = filename_txt
         self.logger = logger
+        self.delete = False
 
     def convert(self):
         if os.path.exists(self.filename_pdf):
@@ -30,5 +31,6 @@ class ConverterPDFtoTXT:
         if os.path.exists(self.filename_pdf):
             with open(self.filename_txt, 'r') as file:
                 result = file.read().splitlines()
-        os.remove(self.filename_txt)
+        if self.delete:
+            os.remove(self.filename_txt)
         return result
