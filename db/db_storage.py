@@ -1,78 +1,13 @@
 import configparser
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker
+
+from db.model import DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, CotReportType, Setting
 
 Base = declarative_base()
-
-
-class CotReportType(Base):
-    __tablename__ = 'cot_report_type'
-    # Column
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-
-
-class Setting(Base):
-    __tablename__ = 'setting'
-    # Column
-    id = Column(Integer, primary_key=True)
-    param_name = Column(String)
-    param_value = Column(String)
-
-
-class DailyBulletinReports(Base):
-    __tablename__ = 'dailybulletin_reports'
-    # Column
-    id = Column(Integer, primary_key=True)
-    name = Column(String(32))
-    date = Column(String)
-    index = Column(Integer)
-    path = Column(String(255))
-    status = Column(String(16), ForeignKey('dailybulletin_reports_status.status'))
-    # Define the relationship
-    status_obj = relationship("DailyBulletinReportsStatus", backref="reports")
-
-
-class DailyBulletinReportsStatus(Base):
-    __tablename__ = 'dailybulletin_reports_status'
-
-    status = Column(String(16), primary_key=True)
-
-
-class DailyBulletinSections(Base):
-    __tablename__ = 'dailybulletin_sections'
-    # Column
-    section = Column(String(8), primary_key=True)
-    type = Column(String(8), ForeignKey('dailybulletin_sections_types.type'))
-    # Relationships
-    type_obj = relationship("DailyBulletinSectionsTypes", backref="sections")
-    names = relationship("DailyBulletinSectionsNames", backref="section_obj", cascade="all, delete-orphan")
-    subsections = relationship("DailyBulletinSectionsSubsections", backref="section_obj", cascade="all, delete-orphan")
-
-
-class DailyBulletinSectionsNames(Base):
-    __tablename__ = 'dailybulletin_sections_names'
-    # Column
-    section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
-    seq = Column(Integer, primary_key=True)
-    name = Column(String(255))
-
-
-class DailyBulletinSectionsSubsections(Base):
-    __tablename__ = 'dailybulletin_sections_subsections'
-    # Column
-    section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
-    seq = Column(Integer, primary_key=True)
-    name = Column(String(255))
-
-
-class DailyBulletinSectionsTypes(Base):
-    __tablename__ = 'dailybulletin_sections_types'
-    # Column
-    type = Column(String(8), primary_key=True)
 
 
 class StorageDb:

@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from constants.enums import ModeExecution
 from db.db_storage import StorageDb
 from log.Logger import Logger
+from scenario.cmeproductsync import CmeProductSync
 from scenario.dailybulletinanalysis import DailyBulletinAnalysis
 from scenario.dailybulletinsync import DailybulletinSync
 
@@ -32,6 +33,11 @@ if __name__ == '__main__':
 
                     dailybulletinAnalysis = DailyBulletinAnalysis(storageDb, Logger())
                     dailybulletinAnalysis.analysis()
+                case ModeExecution.DAILYBULLETIN_SYNC_PRODUCTS.value:
+                    storageDb = StorageDb(filename=credentials_filename)
+
+                    cmeProductSync = CmeProductSync(storageDb, Logger())
+                    cmeProductSync.sync_exec()
 
     except Exception as e:
         Logger().critical(e)
