@@ -35,12 +35,12 @@ class DailyBulletinReportsData:
     product = Column(String(4), ForeignKey('dailybulletin_products.globex'))
 
 
-class DailyBulletinProducts:
+class DailyBulletinProducts(Base):
     __tablename__ = 'dailybulletin_products'
     # Column
     product_name = Column(String(64), primary_key=True)
     type = Column(String(16))
-    globex = Column(String(4))
+    globex = Column(String(4), index=True)
     clearing = Column(String(4))
 
 

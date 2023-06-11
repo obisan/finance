@@ -1,3 +1,5 @@
+import bisect
+
 import pandas as pd
 import requests
 
@@ -9,6 +11,7 @@ class CmeProductSync:
         self.storage_db = storage_db
         self.logger = logger
 
+        self.skip_rows = 1
         self.product_url = self.storage_db.get_setting(Setting.CME_PRODUCT_URL.value)
         self.columns_to_parse = ['CME Group Product Name', 'Futures/Options', 'Globex', 'Clearport']
 
@@ -18,16 +21,50 @@ class CmeProductSync:
                 xlsx_content = response.content
 
                 # Parse the XLSX file and extract the specified columns
-                skip_rows = 1
-
-                df = pd.read_excel(xlsx_content, sheet_name="FX", skiprows=skip_rows)
+                df = pd.read_excel(xlsx_content, sheet_name="FX", skiprows=self.skip_rows)
                 df.columns = df.columns.str.strip()
 
-                parsed_data = df[self.columns_to_parse]
-
                 # Print the parsed data
-                s = parsed_data['CME Group Product Name'].values.tolist()
+                parsed_data = df[self.columns_to_parse]
+                product_names = df['CME Group Product Name'].values.tolist()
 
-                sss = self.storage_db.get_dailybulletin_products()
+                products = self.storage_db.get_dailybulletin_products(product_names)
+                products.sort(key=lambda product: product[0])
 
-                print(sss)
+                products_insert = []
+                products_update = []
+                for index, row in parsed_data.iterrows():
+                    product_name = row['CME Group Product Name']
+                    product_type = row['Futures/Options']
+                    globex = row['Globex']
+                    clearport = row['Clearport']
+
+                    # index = bisect.bisect_left(products, product_name)
+                    index = bisect.bisect_left([product[0] for product in products], product_name)
+                    if index != len(products) and products[index][0] == product_name:
+                        if products[index][1] != product_type \
+                                or products[index][2] != globex \
+                                or products[index][3] != clearport:
+                            products_update.append(
+                                {
+                                    'product_name': product_name,
+                                    'type': product_type,
+                                    'globex': globex,
+                                    'clearport': clearport
+                                }
+                            )
+                    else:
+                        products_insert.append(
+                            {
+                                'product_name': product_name,
+                                'type': product_type,
+                                'globex': globex,
+                                'clearport': clearport
+                            }
+                        )
+                        self.logger.info()
+
+                if len(products_insert) != 0:
+                    self.storage_db.insert_dailybulletin_products(products_insert)
+                if len(products_update) != 0:
+                    self.storage_db.update_dailybulletin_products(products_update)

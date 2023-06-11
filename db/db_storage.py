@@ -43,29 +43,29 @@ class StorageDb:
     def get_setting(self, param_name):
         with self.session() as session:
             result = session.query(
-                func.replace(Setting.param_value, ' ', '')).filter_by(param_name=param_name).scalar()
+                func.trim(Setting.param_value)).filter_by(param_name=param_name).scalar()
         return result
 
     def get_dailybulletin_reports(self):
         with self.session() as session:
             result = session.query(
-                func.replace(DailyBulletinReports.name, ' ', ''),
-                func.replace(DailyBulletinReports.path, ' ', '')).all()
+                func.trim(DailyBulletinReports.name),
+                func.trim(DailyBulletinReports.path)).all()
         return result
 
     def get_dailybulletin_reports_by_names(self, names):
         with self.session() as session:
             result = session.query(
                 DailyBulletinReports.id,
-                func.replace(DailyBulletinReports.name, ' ', '')). \
+                func.trim(DailyBulletinReports.name, ' ', '')). \
                 filter(DailyBulletinReports.name.in_(names)).all()
         return result
 
     def get_dailybulletin_sections_by_section(self, sections):
         with self.session() as session:
             result = session.query(
-                func.replace(DailyBulletinSections.section, ' ', ''),
-                func.replace(DailyBulletinSectionsNames.name, ' ', '')
+                func.trim(DailyBulletinSections.section),
+                func.trim(DailyBulletinSectionsNames.name),
             ).join(
                 DailyBulletinSectionsNames,
                 DailyBulletinSections.section == DailyBulletinSectionsNames.section
@@ -77,12 +77,40 @@ class StorageDb:
                 .all()
         return result
 
-    def get_dailybulletin_products(self):
+    def get_dailybulletin_products(self, product_names):
         with self.session() as session:
             result = session.query(
-                DailyBulletinProducts.product_name
+                func.trim(DailyBulletinProducts.product_name),
+                func.trim(DailyBulletinProducts.type),
+                func.trim(DailyBulletinProducts.globex),
+                func.trim(DailyBulletinProducts.clearing),
+            ).filter(
+                DailyBulletinProducts.product_name.in_(product_names)
             ).all()
         return result
+
+    def insert_dailybulletin_products(self, products):
+        with self.session() as session:
+            for product in products:
+                record = DailyBulletinProducts(
+                    product_name=product['product_name'],
+                    type=product['type'],
+                    globex=product['globex'],
+                    clearing=product['clearport'])
+                session.add(record)
+            session.commit()
+
+    def update_dailybulletin_products(self, products):
+        s = 0
+        # with self.session() as session:
+        #     for product in products:
+        #         record = DailyBulletinProducts(
+        #             product_name=product['product_name'],
+        #             type=product['type'],
+        #             globex=product['globex'],
+        #             clearing=product['clearport'])
+        #         session.update(record)
+        #     session.commit()
 
     def insert_dailybulletin_reports(self, name, date, index, path, status):
         with self.session() as session:
