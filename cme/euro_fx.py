@@ -46,6 +46,9 @@ class Euro_FX:
              "EXERCISES", "VOLUME TRADES CLEARED", "OPEN INTEREST", "OPEN INTEREST DELTA",
              "HIGH", "LOW"]
 
+        self.bulletin = []
+        self.strike_lines = []
+
     def exec(self, section_content):
         values_expiration = \
             self.expiration(section_content)
@@ -56,11 +59,10 @@ class Euro_FX:
 
         contract = ''
         product = ''
-        bulletin = []
-        strike_lines = []
         for content in section_content:
             matches_option_section = re.match(self.pattern_option_section, content)
             if matches_option_section:
+                self.add_bulletin(contract, product)
                 contract = ''
                 product = ''
 
@@ -68,22 +70,21 @@ class Euro_FX:
             if matches_strike_head:
                 values = matches_strike_head.groups()
                 if values[0] != contract:
-                    if contract is not None:
-                        bulletin.append({'contract': contract, 'product': product, 'strikes': strike_lines})
+                    self.add_bulletin(contract, product)
                     contract = values[0]
                     product = ''
                 if values[1] != product:
-                    if product is not None:
-                        bulletin.append({'contract': contract, 'product': product, 'strikes': strike_lines})
+                    self.add_bulletin(contract, product)
                     product = values[1]
 
             matches_columns_data = re.match(self.pattern_contract_data, content)
             if matches_columns_data:
                 values = matches_columns_data.groups()
                 strike_line = dict(zip(self.columns_data, values))
-                strike_lines.append(strike_line)
+                self.strike_lines.append(strike_line)
 
-        print(bulletin[0])
+        for ssss in self.bulletin:
+            print(ssss['contract'] + '\t' + ssss['product'])
 
     def expiration(self, section_content):
         values_expiration_name, values_expiration_date, values_expiration = (), (), ()
@@ -106,3 +107,9 @@ class Euro_FX:
                  for name, date in zip(values_expiration_name, values_expiration_date)]
 
         return values_expiration
+
+    def add_bulletin(self, contract, product):
+        if len(self.strike_lines) == 0:
+            return
+        self.bulletin.append({'contract': contract, 'product': product, 'strikes': self.strike_lines})
+        self.strike_lines = []
