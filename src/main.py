@@ -37,7 +37,7 @@ if __name__ == '__main__':
                     storageDb = StorageDb(filename=credentials_filename)
 
                     cmeProductSync = CmeProductSync(storageDb, Logger())
-                    cmeProductSync.sync_exec()
+                    cmeProductSync.sync()
 
     except Exception as e:
         Logger().critical(e)

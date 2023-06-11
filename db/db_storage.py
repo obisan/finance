@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from db.model import \
     DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
-    CotReportType, Setting
+    UniqueGlobex, CotReportType, Setting
 
 Base = declarative_base()
 
@@ -97,6 +97,19 @@ class StorageDb:
                     type=product['type'],
                     globex=product['globex'],
                     clearing=product['clearport'])
+                session.add(record)
+            session.commit()
+
+    def get_unique_globex(self):
+        with self.session() as session:
+            result = session.query(
+                func.trim(UniqueGlobex.globex)).all()
+        return result
+
+    def insert_unique_globex(self, globexes):
+        with self.session() as session:
+            for globex in globexes:
+                record = UniqueGlobex(globex=globex)
                 session.add(record)
             session.commit()
 

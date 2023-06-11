@@ -7,6 +7,7 @@ from .dailybulletin import DailyBulletinSections
 from .dailybulletin import DailyBulletinSectionsNames
 from .dailybulletin import DailyBulletinSectionsSubsections
 from .dailybulletin import DailyBulletinSectionsTypes
+from .dailybulletin import UniqueGlobex
 from .setting import Setting
 
 __all__ = \
@@ -14,6 +15,7 @@ __all__ = \
   'DailyBulletinSectionsTypes', 'DailyBulletinSectionsNames',
   'DailyBulletinSectionsSubsections', 'DailyBulletinReportsStatus',
   'DailyBulletinProducts', 'DailyBulletinContracts',
+  'UniqueGlobex',
 
   'CotReportType',
   'Setting']

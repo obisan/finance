@@ -5,6 +5,12 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
+class UniqueGlobex(Base):
+    __tablename__ = 'unique_globex'
+    # Column
+    globex = Column(String(4), primary_key=True)
+
+
 class DailyBulletinContracts(Base):
     __tablename__ = 'dailybulletin_contracts'
     # Column
@@ -29,10 +35,10 @@ class DailyBulletinReports(Base):
 class DailyBulletinReportsData:
     __tablename__ = 'dailybulletin_reports_data'
     # Column
-    report_id = Column(Integer, ForeignKey('dailybulletin_reports_data.id'))
-    section = Column(String(8), ForeignKey('dailybulletin_sections.section'))
-    contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'))
-    product = Column(String(4), ForeignKey('dailybulletin_products.globex'))
+    report_id = Column(Integer, ForeignKey('dailybulletin_reports_data.id'), primary_key=True)
+    section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
+    contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'), primary_key=True)
+    product = Column(String(4), ForeignKey('dailybulletin_products.globex'), primary_key=True)
 
 
 class DailyBulletinProducts(Base):
@@ -40,8 +46,10 @@ class DailyBulletinProducts(Base):
     # Column
     product_name = Column(String(64), primary_key=True)
     type = Column(String(16))
-    globex = Column(String(4), index=True)
+    globex = Column(String(4), ForeignKey('unique_globex.globex'), index=True)
     clearing = Column(String(4))
+    # Relationship
+    unique_globex = relationship("UniqueGlobex", backref="dailybulletin_products")
 
 
 class DailyBulletinReportsStatus(Base):
