@@ -57,7 +57,7 @@ class StorageDb:
         with self.session() as session:
             result = session.query(
                 DailyBulletinReports.id,
-                func.trim(DailyBulletinReports.name, ' ', '')). \
+                func.trim(DailyBulletinReports.name)). \
                 filter(DailyBulletinReports.name.in_(names)).all()
         return result
 
