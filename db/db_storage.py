@@ -5,7 +5,9 @@ from sqlalchemy import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from db.model import DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, CotReportType, Setting
+from db.model import \
+    DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
+    CotReportType, Setting
 
 Base = declarative_base()
 
@@ -73,6 +75,13 @@ class StorageDb:
                 DailyBulletinSections.section,
                 DailyBulletinSectionsNames.seq) \
                 .all()
+        return result
+
+    def get_dailybulletin_products(self):
+        with self.session() as session:
+            result = session.query(
+                DailyBulletinProducts.product_name
+            ).all()
         return result
 
     def insert_dailybulletin_reports(self, name, date, index, path, status):

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, SmallInteger, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -32,29 +32,21 @@ class DailyBulletinReportsData:
     report_id = Column(Integer, ForeignKey('dailybulletin_reports_data.id'))
     section = Column(String(8), ForeignKey('dailybulletin_sections.section'))
     contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'))
-    product = Column(SmallInteger, ForeignKey('dailybulletin_products.id'))
+    product = Column(String(4), ForeignKey('dailybulletin_products.globex'))
 
 
 class DailyBulletinProducts:
     __tablename__ = 'dailybulletin_products'
     # Column
-    id = Column(SmallInteger, primary_key=True)
-    clearing = Column(String(4))
+    product_name = Column(String(64), primary_key=True)
+    type = Column(String(16))
     globex = Column(String(4))
-    floor = Column(String(4))
-    clearport = Column(String(4))
-    name = Column(String(64))
-    exchange = Column(String(4))
-    group = Column(String(16))
-    sub_group = Column(String(16))
-    category = Column(String(16))
-    sub_category = Column(String(16))
-    cleared_as = Column(String(16))
+    clearing = Column(String(4))
 
 
 class DailyBulletinReportsStatus(Base):
     __tablename__ = 'dailybulletin_reports_status'
-
+    # Column
     status = Column(String(16), primary_key=True)
 
 
