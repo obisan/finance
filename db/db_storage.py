@@ -1,78 +1,15 @@
 import configparser
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker
+
+from db.model import \
+    DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
+    CotReportType, Setting
 
 Base = declarative_base()
-
-
-class CotReportType(Base):
-    __tablename__ = 'cot_report_type'
-    # Column
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-
-
-class Setting(Base):
-    __tablename__ = 'setting'
-    # Column
-    id = Column(Integer, primary_key=True)
-    param_name = Column(String)
-    param_value = Column(String)
-
-
-class DailyBulletinReports(Base):
-    __tablename__ = 'dailybulletin_reports'
-    # Column
-    id = Column(Integer, primary_key=True)
-    name = Column(String(32))
-    date = Column(String)
-    index = Column(Integer)
-    path = Column(String(255))
-    status = Column(String(16), ForeignKey('dailybulletin_reports_status.status'))
-    # Define the relationship
-    status_obj = relationship("DailyBulletinReportsStatus", backref="reports")
-
-
-class DailyBulletinReportsStatus(Base):
-    __tablename__ = 'dailybulletin_reports_status'
-
-    status = Column(String(16), primary_key=True)
-
-
-class DailyBulletinSections(Base):
-    __tablename__ = 'dailybulletin_sections'
-    # Column
-    section = Column(String(8), primary_key=True)
-    type = Column(String(8), ForeignKey('dailybulletin_sections_types.type'))
-    # Relationships
-    type_obj = relationship("DailyBulletinSectionsTypes", backref="sections")
-    names = relationship("DailyBulletinSectionsNames", backref="section_obj", cascade="all, delete-orphan")
-    subsections = relationship("DailyBulletinSectionsSubsections", backref="section_obj", cascade="all, delete-orphan")
-
-
-class DailyBulletinSectionsNames(Base):
-    __tablename__ = 'dailybulletin_sections_names'
-    # Column
-    section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
-    seq = Column(Integer, primary_key=True)
-    name = Column(String(255))
-
-
-class DailyBulletinSectionsSubsections(Base):
-    __tablename__ = 'dailybulletin_sections_subsections'
-    # Column
-    section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
-    seq = Column(Integer, primary_key=True)
-    name = Column(String(255))
-
-
-class DailyBulletinSectionsTypes(Base):
-    __tablename__ = 'dailybulletin_sections_types'
-    # Column
-    type = Column(String(8), primary_key=True)
 
 
 class StorageDb:
@@ -106,29 +43,29 @@ class StorageDb:
     def get_setting(self, param_name):
         with self.session() as session:
             result = session.query(
-                func.replace(Setting.param_value, ' ', '')).filter_by(param_name=param_name).scalar()
+                func.trim(Setting.param_value)).filter_by(param_name=param_name).scalar()
         return result
 
     def get_dailybulletin_reports(self):
         with self.session() as session:
             result = session.query(
-                func.replace(DailyBulletinReports.name, ' ', ''),
-                func.replace(DailyBulletinReports.path, ' ', '')).all()
+                func.trim(DailyBulletinReports.name),
+                func.trim(DailyBulletinReports.path)).all()
         return result
 
     def get_dailybulletin_reports_by_names(self, names):
         with self.session() as session:
             result = session.query(
                 DailyBulletinReports.id,
-                func.replace(DailyBulletinReports.name, ' ', '')). \
+                func.trim(DailyBulletinReports.name, ' ', '')). \
                 filter(DailyBulletinReports.name.in_(names)).all()
         return result
 
     def get_dailybulletin_sections_by_section(self, sections):
         with self.session() as session:
             result = session.query(
-                func.replace(DailyBulletinSections.section, ' ', ''),
-                func.replace(DailyBulletinSectionsNames.name, ' ', '')
+                func.trim(DailyBulletinSections.section),
+                func.trim(DailyBulletinSectionsNames.name),
             ).join(
                 DailyBulletinSectionsNames,
                 DailyBulletinSections.section == DailyBulletinSectionsNames.section
@@ -139,6 +76,41 @@ class StorageDb:
                 DailyBulletinSectionsNames.seq) \
                 .all()
         return result
+
+    def get_dailybulletin_products(self, product_names):
+        with self.session() as session:
+            result = session.query(
+                func.trim(DailyBulletinProducts.product_name),
+                func.trim(DailyBulletinProducts.type),
+                func.trim(DailyBulletinProducts.globex),
+                func.trim(DailyBulletinProducts.clearing),
+            ).filter(
+                DailyBulletinProducts.product_name.in_(product_names)
+            ).all()
+        return result
+
+    def insert_dailybulletin_products(self, products):
+        with self.session() as session:
+            for product in products:
+                record = DailyBulletinProducts(
+                    product_name=product['product_name'],
+                    type=product['type'],
+                    globex=product['globex'],
+                    clearing=product['clearport'])
+                session.add(record)
+            session.commit()
+
+    def update_dailybulletin_products(self, products):
+        s = 0
+        # with self.session() as session:
+        #     for product in products:
+        #         record = DailyBulletinProducts(
+        #             product_name=product['product_name'],
+        #             type=product['type'],
+        #             globex=product['globex'],
+        #             clearing=product['clearport'])
+        #         session.update(record)
+        #     session.commit()
 
     def insert_dailybulletin_reports(self, name, date, index, path, status):
         with self.session() as session:

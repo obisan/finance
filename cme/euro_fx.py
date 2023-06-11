@@ -53,6 +53,8 @@ class Euro_FX:
         values_expiration = \
             self.expiration(section_content)
 
+        # print(values_expiration)
+
         pattern_strike_head = \
             self.pattern_contract_head.replace(
                 '%s', ('|'.join([re.escape(name) for name, _, _ in values_expiration])))
@@ -83,8 +85,8 @@ class Euro_FX:
                 strike_line = dict(zip(self.columns_data, values))
                 self.strike_lines.append(strike_line)
 
-        for ssss in self.bulletin:
-            print(ssss['contract'] + '\t' + ssss['product'])
+        # for ssss in self.bulletin:
+        #     print(ssss['contract'] + '\t' + ssss['product'])
 
     def expiration(self, section_content):
         values_expiration_name, values_expiration_date, values_expiration = (), (), ()
