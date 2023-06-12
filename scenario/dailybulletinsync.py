@@ -19,6 +19,9 @@ class DailybulletinSync:
         self.cme = CME(host, user, passwd)
         self.logger = logger
 
+    def sync(self):
+        self.sync_exec()
+
     def sync_exec(self):
         # bulletin/DailyBulletin_pdf_2023021329.zip
         dailybulletin_list = self.cme.get_dailybulletin_list()

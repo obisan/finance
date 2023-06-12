@@ -27,7 +27,7 @@ if __name__ == '__main__':
                     storageDb = StorageDb(filename=credentials_filename)
 
                     dailybulletinSync = DailybulletinSync(storageDb, Logger())
-                    dailybulletinSync.sync_exec()
+                    dailybulletinSync.sync()
                 case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
                     storageDb = StorageDb(filename=credentials_filename)
 
