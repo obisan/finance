@@ -15,7 +15,9 @@ setup(
         "PyMySQL == 1.0.3",
         "Requests == 2.31.0",
         "setuptools == 66.0.0",
+        "sqlalchemy == 1.4.39",
         "lxml == 4.9.1",
+        "openpyxl == 3.1.2"
     ],
     # Other optional configuration options
     # ...

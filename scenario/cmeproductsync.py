@@ -46,12 +46,12 @@ class CmeProductSync:
         product_globex = df[ProductColumns.GLOBEX.value].unique().tolist()
 
         unique_globexes = self.storage_db.get_unique_globex()
-        unique_globexes.sort(key=lambda l_globex: l_globex)
+        unique_globexes.sort(key=lambda l_globex: l_globex[0])
 
         for globex in product_globex:
-            index = bisect.bisect_left(unique_globexes, globex)
+            index = bisect.bisect_left([unique_globex[0] for unique_globex in unique_globexes], globex)
 
-            if index != len(unique_globexes) and unique_globexes[index] == globex:
+            if index != len(unique_globexes) and unique_globexes[index][0] == globex:
                 continue
             else:
                 self.unique_globex_insert.append(globex)
