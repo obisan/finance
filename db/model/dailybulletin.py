@@ -24,7 +24,7 @@ class DailyBulletinReports(Base):
     # Column
     id = Column(Integer, primary_key=True)
     name = Column(String(32))
-    date = Column(String)
+    date = Column(Date)
     index = Column(Integer)
     path = Column(String(255))
     status = Column(String(16), ForeignKey('dailybulletin_reports_status.status'))
@@ -39,6 +39,20 @@ class DailyBulletinReportsData:
     section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
     contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'), primary_key=True)
     product = Column(String(4), ForeignKey('dailybulletin_products.globex'), primary_key=True)
+    strike = Column(String(8))
+    open_range = Column(String(8))
+    high = Column(String(8))
+    low = Column(String(8))
+    closing_range = Column(String(8))
+    settlement_price = Column(String(8))
+    point_change = Column(String(8))
+    delta = Column(String(8))
+    exercises = Column(String(8))
+    volume_trades_cleared = Column(String(8))
+    open_interest = Column(String(8))
+    open_interest_delta = Column(String(8))
+    contract_high = Column(String(8))
+    contract_low = Column(String(8))
 
 
 class DailyBulletinProducts(Base):

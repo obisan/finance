@@ -1,5 +1,7 @@
 import bisect
+import os
 import re
+from datetime import datetime
 
 from cme.cme import CME
 from constants.enums import CME_const
@@ -7,22 +9,28 @@ from constants.enums import DailybulletinReportsStatus
 from constants.enums import Setting
 
 
+def binary_search(bulletins, target):
+    names = [bulletin['name'] for bulletin in bulletins]
+    index = bisect.bisect_left(names, target)
+    if index < len(bulletins) and bulletins[index]['name'] == target:
+        return index
+    return -1
+
+
 class DailybulletinSync:
 
-    def __init__(self, storage_db, logger=None):
+    def __init__(self, storage_db, repository=None, logger=None):
         host = storage_db.get_setting(Setting.CME_FTP_HOST.value)
         user = storage_db.get_setting(Setting.CME_FTP_USER.value)
         passwd = storage_db.get_setting(Setting.CME_FTP_PASSWORD.value)
         self.storage_db = storage_db
-        self.host_save_path = storage_db.get_setting(Setting.HOST_SAVE_PATH.value)
-        self.host_address = storage_db.get_setting(Setting.HOST_ADDRESS.value)
-        self.cme = CME(host, user, passwd)
+        self.host_save_path = repository.path  # storage_db.get_setting(Setting.HOST_SAVE_PATH.value)
+        self.cme = CME(host, user, passwd, repository)
         self.logger = logger
 
-    def sync(self):
-        self.sync_exec()
+        self.s = []
 
-    def sync_exec(self):
+    def get_dailybulletin_from_cme(self):
         # bulletin/DailyBulletin_pdf_2023021329.zip
         dailybulletin_list = self.cme.get_dailybulletin_list()
 
@@ -38,46 +46,72 @@ class DailybulletinSync:
             r"(\d{8})",
             r"\d{8}(\d+)"]
 
-        # get list values by patterns
+        # transform list values by patterns
         results = [
             [re.search(pattern, filename).group(1) if re.search(pattern, filename) else None
              for pattern in patterns]
             for filename in dailybulletin_list]
 
+        return results
+
+    def get_dailybulletin_from_db(self, bulletins):
         # get records in db by name DailyBulletin_pdf_2023021329, then sort
         dailybulletin_reports_in_db_sorted = \
             sorted(
                 [record[1] for record in
-                 self.storage_db.get_dailybulletin_reports_by_names(
-                     list(map(lambda x: x[1] if isinstance(x, list) else x, results)))],
+                 self.storage_db.get_dailybulletin_reports_by_names(bulletins)],
                 key=lambda x: x)
+        return dailybulletin_reports_in_db_sorted
 
-        for item in results:
-            try:
-                target = item[1]
-                index = bisect.bisect_left(dailybulletin_reports_in_db_sorted, target, )
+    def sync(self):
+        self.sync_exec()
 
-                if index != len(dailybulletin_reports_in_db_sorted) \
-                        and dailybulletin_reports_in_db_sorted[index] == target:
-                    self.logger.debug(f"Found: {dailybulletin_reports_in_db_sorted[index]}")
-                    continue
+    def sync_exec(self):
+        dailybulletin_from_cme = self.get_dailybulletin_from_cme()
+        # get records in db by name DailyBulletin_pdf_2023021329, then sort
+        dailybulletin_from_db = self.get_dailybulletin_from_db(list(map(lambda x: x[1], dailybulletin_from_cme)))
 
-                destination = '/'.join([self.host_save_path, item[2]])
+        bulletin_processing = []
+        for item in dailybulletin_from_cme:
+            target = item[1]
+            index = bisect.bisect_left(dailybulletin_from_db, target, )
 
-                if self.cme.download_dailybulletin_by_date(item[0], destination) == CME_const.success.value:
-                    self.cme.download_dailybulletin_by_date(item[0], destination)
-                    self.storage_db.insert_dailybulletin_reports(
-                        name=item[1], date=item[3], index=item[4],
-                        status=DailybulletinReportsStatus.DOWNLOADED.value,
-                        path=destination)
-                    self.logger.info(f"Loaded & Saved: {target}")
-                else:
-                    self.storage_db.insert_dailybulletin_reports(
-                        name=item[1], date=item[3], index=item[4],
-                        status=DailybulletinReportsStatus.NOT_DOWNLOADED.value,
-                        path=destination)
-                    self.logger.info(f"Try download & save: {target}")
+            if index != len(dailybulletin_from_db) \
+                    and dailybulletin_from_db[index] == target:
+                self.logger.debug(f"Found: {dailybulletin_from_db[index]}")
+                continue
 
-            except Exception as e:
-                self.logger.critical(f"An exception occurred: {repr(e)}")
-                self.logger.critical(f"    {item}")
+            bulletin_processing.append(
+                {
+                    'name': item[1],
+                    'date': datetime.strptime(item[3], '%Y%m%d').date(),
+                    'index': item[4],
+                    'path': os.path.join(self.host_save_path, item[2]),
+                    'status': DailybulletinReportsStatus.DOWNLOADED.value
+                }
+            )
+
+        bulletin_downloaded = \
+            self.cme.download_dailybulletins_by_name(list(map(lambda x: x['name'], bulletin_processing)))
+
+        for bulletin in bulletin_downloaded:
+            self.logger.info(f"Loaded: {bulletin['name']}")
+
+        bulletin_saved = \
+            self.save_dailybulletins_downloaded(bulletin_processing, bulletin_downloaded)
+
+        for bulletin in bulletin_saved:
+            self.logger.info(f"Saved: {bulletin['name']}")
+
+    def save_dailybulletins_downloaded(self, bulletins, bulletin_downloaded):
+
+        sorted_bulletins = sorted(bulletins, key=lambda x: x['name'])
+        bulletins_insert = []
+        for downloaded in bulletin_downloaded:
+            index = binary_search(sorted_bulletins, downloaded['name'])
+            if index != -1 and downloaded['code'] == CME_const.success.value:
+                bulletins_insert.append(sorted_bulletins[index])
+
+        self.storage_db.insert_dailybulletin_reports(bulletins_insert)
+
+        return bulletins_insert

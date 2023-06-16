@@ -9,7 +9,7 @@ from convert.converter import ConverterPDFtoTXT
 
 class DailyBulletinAnalysis:
 
-    def __init__(self, storage_db, logger=None):
+    def __init__(self, storage_db, repository=None, logger=None):
         self.storage_db = storage_db
         self.logger = logger
         self.delete = False

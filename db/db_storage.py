@@ -125,8 +125,14 @@ class StorageDb:
         #         session.update(record)
         #     session.commit()
 
-    def insert_dailybulletin_reports(self, name, date, index, path, status):
+    def insert_dailybulletin_reports(self, dailybulletin_reports):
         with self.session() as session:
-            report = DailyBulletinReports(name=name, date=date, index=index, path=path, status=status)
-            session.add(report)
+            for bulletin in dailybulletin_reports:
+                report = DailyBulletinReports(
+                    name=bulletin['name'],
+                    date=bulletin['date'],
+                    index=bulletin['index'],
+                    path=bulletin['path'],
+                    status=bulletin['status'])
+                session.add(report)
             session.commit()

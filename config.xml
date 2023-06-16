@@ -1,4 +1,5 @@
 <config>
     <mode>DAILYBULLETIN_SYNC</mode>
     <connect>connect.ini</connect>
+    <repository>/path/to/dir/with/bulletin</repository>
 </config>

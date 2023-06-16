@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from constants.enums import ModeExecution
 from db.db_storage import StorageDb
 from log.Logger import Logger
+from repository import RepositoryBulletin
 from scenario.cmeproductsync import CmeProductSync
 from scenario.dailybulletinanalysis import DailyBulletinAnalysis
 from scenario.dailybulletinsync import DailybulletinSync
@@ -21,17 +22,20 @@ if __name__ == '__main__':
             soup = BeautifulSoup(xml_data, "xml")
             credentials_filename = soup.find("config").find("connect").text
             mode = soup.find("config").find("mode").text
+            repository = soup.find("config").find("repository").text
 
             match mode:
                 case ModeExecution.DAILYBULLETIN_SYNC.value:
                     storageDb = StorageDb(filename=credentials_filename)
+                    repositoryBulletin = RepositoryBulletin(repository)
 
-                    dailybulletinSync = DailybulletinSync(storageDb, Logger())
+                    dailybulletinSync = DailybulletinSync(storageDb, repositoryBulletin, Logger())
                     dailybulletinSync.sync()
                 case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
                     storageDb = StorageDb(filename=credentials_filename)
+                    repositoryBulletin = RepositoryBulletin(repository)
 
-                    dailybulletinAnalysis = DailyBulletinAnalysis(storageDb, Logger())
+                    dailybulletinAnalysis = DailyBulletinAnalysis(storageDb, RepositoryBulletin, Logger())
                     dailybulletinAnalysis.analysis()
                 case ModeExecution.DAILYBULLETIN_SYNC_PRODUCTS.value:
                     storageDb = StorageDb(filename=credentials_filename)

@@ -31,3 +31,4 @@ class DailybulletinReportsStatus(Enum):
 
 class CME_const(Enum):
     success = '226 Transfer complete.'
+    directory_changed = '250 Directory successfully changed.'
