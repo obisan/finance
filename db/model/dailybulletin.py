@@ -32,14 +32,14 @@ class DailyBulletinReports(Base):
     status_obj = relationship("DailyBulletinReportsStatus", backref="reports")
 
 
-class DailyBulletinReportsData:
+class DailyBulletinReportsData(Base):
     __tablename__ = 'dailybulletin_reports_data'
     # Column
     report_id = Column(Integer, ForeignKey('dailybulletin_reports_data.id'), primary_key=True)
     section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
     contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'), primary_key=True)
     product = Column(String(4), ForeignKey('dailybulletin_products.globex'), primary_key=True)
-    strike = Column(String(8))
+    strike = Column(String(8), primary_key=True)
     open_range = Column(String(8))
     high = Column(String(8))
     low = Column(String(8))
@@ -53,6 +53,17 @@ class DailyBulletinReportsData:
     open_interest_delta = Column(String(8))
     contract_high = Column(String(8))
     contract_low = Column(String(8))
+
+
+class DailyBulletinReportsDataType(Base):
+    __tablename__ = 'dailybulletin_reports_data_type'
+    # Column
+    report_id = Column(Integer, ForeignKey('dailybulletin_reports_data.id'), primary_key=True)
+    section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
+    contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'), primary_key=True)
+    product = Column(String(4), ForeignKey('dailybulletin_products.globex'), primary_key=True)
+    strike = Column(String(8), primary_key=True)
+    type = Column(String(8))
 
 
 class DailyBulletinProducts(Base):
