@@ -6,9 +6,10 @@ from constants.enums import ModeExecution
 from db.db_storage import StorageDb
 from log.Logger import Logger
 from repository import RepositoryBulletin
-from scenario.cmeproductsync import CmeProductSync
 from scenario.dailybulletinanalysis import DailyBulletinAnalysis
 from scenario.dailybulletinsync import DailybulletinSync
+from scenario.dailybulletinsynccontract import DailyBulletinSyncContract
+from scenario.dailybulletinsyncproduct import DailyBulletinSyncProduct
 
 if __name__ == '__main__':
     # sys.argv[0] path.py
@@ -40,8 +41,13 @@ if __name__ == '__main__':
                 case ModeExecution.DAILYBULLETIN_SYNC_PRODUCTS.value:
                     storageDb = StorageDb(filename=credentials_filename)
 
-                    cmeProductSync = CmeProductSync(storageDb, Logger())
+                    cmeProductSync = DailyBulletinSyncProduct(storageDb, Logger())
                     cmeProductSync.sync()
+                case ModeExecution.DAILYBULLETIN_SYNC_CONTRACTS.value:
+                    storageDb = StorageDb(filename=credentials_filename)
+
+                    dailybulletinSyncContract = DailyBulletinSyncContract(storageDb, Logger())
+                    dailybulletinSyncContract.sync()
 
     except Exception as e:
         Logger().critical(e)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, SmallInteger, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, SmallInteger, Integer, String, Date, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -14,9 +14,29 @@ class UniqueGlobex(Base):
 class DailyBulletinContracts(Base):
     __tablename__ = 'dailybulletin_contracts'
     # Column
-    contract = Column(String(5), primary_key=True)
-    expiration = Column(String(5))
-    expiration_date = Column(Date)
+    symbol = Column(String(5), ForeignKey('dictionary_symbol.symbol'), primary_key=True)
+    year = Column(String(4), ForeignKey('dictionary_year.year'), primary_key=True)
+    month = Column(String(1), ForeignKey('dailybulletin_report_contracts_symbol_month.month_literal'))
+    product_group = Column(String(8))
+    underlying = Column(String(4))
+    first_avail = Column(Date)
+    expiration = Column(DateTime(timezone=True))
+    settle = Column(Date)
+    clearing = Column(String(4))
+    globex = Column(String(4))
+    prs = Column(String(4))
+    floor = Column(String(4))
+    group = Column(String(4))
+    itc = Column(String(4))
+    exchange_contract = Column(String(4))
+    type = Column(String(8))
+
+
+class DailyBulletinReportContractsSymbolMonth(Base):
+    __tablename__ = 'dailybulletin_report_contracts_symbol_month'
+    # Column
+    month_literal = Column(String(1), primary_key=True)
+    month_number = Column(SmallInteger)
 
 
 class DailyBulletinReports(Base):
@@ -37,8 +57,8 @@ class DailyBulletinReportsData(Base):
     # Column
     report_id = Column(Integer, ForeignKey('dailybulletin_reports.id'), primary_key=True)
     section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
-    contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'), primary_key=True)
-    product = Column(String(4), ForeignKey('dailybulletin_products.globex'), primary_key=True)
+    symbol = Column(String(5), ForeignKey('dictionary_symbol.symbol'), primary_key=True)
+    year = Column(String(4), ForeignKey('dictionary_year.year'), primary_key=True)
     strike = Column(String(8), primary_key=True)
     strike_index = Column(SmallInteger, primary_key=True)
     type = Column(String(8), ForeignKey('dailybulletin_sections_types.type'))
@@ -71,7 +91,7 @@ class DailyBulletinReportsDataType(Base):
 class DailyBulletinProducts(Base):
     __tablename__ = 'dailybulletin_products'
     # Column
-    product_name = Column(String(64), primary_key=True)
+    name = Column(String(64), primary_key=True)
     type = Column(String(16))
     globex = Column(String(4), ForeignKey('unique_globex.globex'), index=True)
     clearing = Column(String(4))
@@ -116,3 +136,15 @@ class DailyBulletinSectionsTypes(Base):
     __tablename__ = 'dailybulletin_sections_types'
     # Column
     type = Column(String(8), primary_key=True)
+
+
+class DictionarySymbol(Base):
+    __tablename__ = 'dictionary_symbol'
+    # Column
+    symbol = Column(String(5), primary_key=True)
+
+
+class DictionaryYear(Base):
+    __tablename__ = 'dictionary_year'
+    # Column
+    year = Column(String(4), primary_key=True)

@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from constants.enums import DailyBulletinReportsDataColumns
 from db.model import \
     DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
-    DailyBulletinReportsData, UniqueGlobex, CotReportType, Setting
+    DailyBulletinReportsData, UniqueGlobex, CotReportType, Setting, DailyBulletinContracts
 
 Base = declarative_base()
 
@@ -82,12 +82,12 @@ class StorageDb:
     def get_dailybulletin_products(self, product_names):
         with self.session() as session:
             result = session.query(
-                func.trim(DailyBulletinProducts.product_name),
+                func.trim(DailyBulletinProducts.product),
                 func.trim(DailyBulletinProducts.type),
                 func.trim(DailyBulletinProducts.globex),
                 func.trim(DailyBulletinProducts.clearing),
             ).filter(
-                DailyBulletinProducts.product_name.in_(product_names)
+                DailyBulletinProducts.product.in_(product_names)
             ).all()
         return result
 
@@ -95,7 +95,7 @@ class StorageDb:
         with self.session() as session:
             for product in products:
                 record = DailyBulletinProducts(
-                    product_name=product['product_name'],
+                    name=product['name'],
                     type=product['type'],
                     globex=product['globex'],
                     clearing=product['clearport'])
@@ -166,4 +166,28 @@ class StorageDb:
                             contract_high=strike[DailyBulletinReportsDataColumns.HIGH.value],
                             contract_low=strike[DailyBulletinReportsDataColumns.LOW.value])
                         session.add(record)
+            session.commit()
+
+    def insert_dailybulletin_contracts(self, contracts):
+        with self.session() as session:
+            for contract in contracts:
+                record = DailyBulletinContracts(
+                    product=contract['product'],
+                    symbol=contract['symbol'],
+                    year=contract['year'],
+                    month=contract['month'],
+                    product_group=contract['product_group'],
+                    underlying=contract['underlying'],
+                    first_avail=contract['first_avail'],
+                    expiration=contract['expiration'],
+                    settle=contract['settle'],
+                    clearing=contract['clearing'],
+                    globex=contract['globex'],
+                    prs=contract['prs'],
+                    floor=contract['floor'],
+                    group=contract['group'],
+                    itc=contract['itc'],
+                    exchange_contract=contract['exchange_contract'],
+                    type=contract['type'])
+                session(record)
             session.commit()

@@ -1,5 +1,6 @@
 from .cot_report import CotReportType
 from .dailybulletin import DailyBulletinContracts
+from .dailybulletin import DailyBulletinContracts
 from .dailybulletin import DailyBulletinProducts
 from .dailybulletin import DailyBulletinReports
 from .dailybulletin import DailyBulletinReportsData
@@ -8,14 +9,18 @@ from .dailybulletin import DailyBulletinSections
 from .dailybulletin import DailyBulletinSectionsNames
 from .dailybulletin import DailyBulletinSectionsSubsections
 from .dailybulletin import DailyBulletinSectionsTypes
+from .dailybulletin import DictionarySymbol
+from .dailybulletin import DictionaryYear
 from .dailybulletin import UniqueGlobex
 from .setting import Setting
 
 __all__ = \
- ['DailyBulletinReports', 'DailyBulletinSections',
+ ['DictionarySymbol', 'DictionaryYear',
+  'DailyBulletinReports', 'DailyBulletinSections',
   'DailyBulletinSectionsTypes', 'DailyBulletinSectionsNames',
   'DailyBulletinSectionsSubsections', 'DailyBulletinReportsStatus',
   'DailyBulletinProducts', 'DailyBulletinContracts', 'DailyBulletinReportsData',
+  'DailyBulletinContracts',
   'UniqueGlobex',
 
   'CotReportType',

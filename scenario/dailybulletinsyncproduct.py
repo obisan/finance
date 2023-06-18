@@ -14,7 +14,7 @@ class ProductColumns(enum.Enum):
     CLEARPORT = 'Clearport'
 
 
-class CmeProductSync:
+class DailyBulletinSyncProduct:
     def __init__(self, storage_db, logger=None):
         self.storage_db = storage_db
         self.logger = logger
@@ -65,20 +65,20 @@ class CmeProductSync:
         products.sort(key=lambda product: product[0])
 
         for index, row in parsed_data.iterrows():
-            product_name = row[ProductColumns.PRODUCT_NAME.value]
-            product_type = row[ProductColumns.FUTURES_OPTIONS.value]
+            name = row[ProductColumns.PRODUCT_NAME.value]
+            type = row[ProductColumns.FUTURES_OPTIONS.value]
             globex = row[ProductColumns.GLOBEX.value]
             clearport = row[ProductColumns.CLEARPORT.value]
 
-            index = bisect.bisect_left([product[0] for product in products], product_name)
-            if index != len(products) and products[index][0] == product_name:
-                if products[index][1] != product_type \
+            index = bisect.bisect_left([product[0] for product in products], name)
+            if index != len(products) and products[index][0] == name:
+                if products[index][1] != type \
                         or products[index][2] != globex \
                         or products[index][3] != clearport:
                     self.products_update.append(
                         {
-                            'product_name': product_name,
-                            'type': product_type,
+                            'name': name,
+                            'type': type,
                             'globex': globex,
                             'clearport': clearport
                         }
@@ -86,13 +86,13 @@ class CmeProductSync:
             else:
                 self.products_insert.append(
                     {
-                        'product_name': product_name,
-                        'type': product_type,
+                        'name': name,
+                        'type': type,
                         'globex': globex,
                         'clearport': clearport
                     }
                 )
-                self.logger.info(f"Saved product {product_name} {product_type} {globex} {clearport}")
+                self.logger.info(f"Saved product {name} {type} {globex} {clearport}")
 
     def sync_exec(self):
         if len(self.unique_globex_insert) != 0:
