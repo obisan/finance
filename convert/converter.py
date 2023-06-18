@@ -13,9 +13,7 @@ class ConverterPDFtoTXT:
     def convert(self):
         if os.path.exists(self.filename_pdf):
             try:
-
                 output = subprocess.check_output(
-                    # ["/usr/bin/Rscript", "./read_pdf.R", self.filename_pdf, self.filename_txt],
                     ["Rscript", "./read_pdf.R", self.filename_pdf, self.filename_txt],
                     stderr=subprocess.STDOUT)
                 output = output.decode('utf-8')

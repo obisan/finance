@@ -2,6 +2,7 @@ from .cot_report import CotReportType
 from .dailybulletin import DailyBulletinContracts
 from .dailybulletin import DailyBulletinProducts
 from .dailybulletin import DailyBulletinReports
+from .dailybulletin import DailyBulletinReportsData
 from .dailybulletin import DailyBulletinReportsStatus
 from .dailybulletin import DailyBulletinSections
 from .dailybulletin import DailyBulletinSectionsNames
@@ -14,7 +15,7 @@ __all__ = \
  ['DailyBulletinReports', 'DailyBulletinSections',
   'DailyBulletinSectionsTypes', 'DailyBulletinSectionsNames',
   'DailyBulletinSectionsSubsections', 'DailyBulletinReportsStatus',
-  'DailyBulletinProducts', 'DailyBulletinContracts',
+  'DailyBulletinProducts', 'DailyBulletinContracts', 'DailyBulletinReportsData',
   'UniqueGlobex',
 
   'CotReportType',

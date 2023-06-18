@@ -1,6 +1,4 @@
 import os
-import shutil
-import zipfile
 
 from cme import Euro_FX
 from constants.enums import DailyBulletinSection
@@ -13,42 +11,45 @@ class DailyBulletinAnalysis:
         self.storage_db = storage_db
         self.repository = repository
         self.logger = logger
-        self.delete = False
 
-    def analysis(self):
+        sections = [str(DailyBulletinSection.EURO_FX.value)]
+        self.sections = \
+            list(map(lambda x: {
+                'section': x[0],
+                'name': x[1]
+            }, self.storage_db.get_dailybulletin_sections_by_section(sections)))
 
-        dailybulletin_reports = self.storage_db.get_dailybulletin_reports()
-
-        for line in self.storage_db.get_dailybulletin_reports()[1:2]:
-            # r'\\xxx\storage\finance_storage\DailyBulletin\test\DailyBulletin_pdf_202301031.zip'
-            bulletin_name = line[0]
-            bulletin_filepath = line[1]
-
-            # Calculate the target directory based on the ZIP file name
-            target_dir = bulletin_name
-
-            # Create the target directory if it doesn't exist
-            if not os.path.exists(target_dir):
-                os.makedirs(target_dir)
-
-            with zipfile.ZipFile(bulletin_filepath, 'r') as zip_ref:
-                zip_ref.extractall(target_dir)
-
-            sections = [str(DailyBulletinSection.EURO_FX.value)]
-
-            for section in self.storage_db.get_dailybulletin_sections_by_section(sections):
-                ssss = os.path.join(os.curdir, target_dir)
-
-                section_name = section[1]
-                section_filename_pdf = os.path.join(ssss, section_name) + '.pdf'
-                section_filename_txt = os.path.join(ssss, section_name) + '.txt'
+    def exec_analysis(self, bulletins):
+        dailybulletin_reports_data = []
+        for bulletin in bulletins:
+            target_dir_zip = os.path.join(os.curdir, bulletin['name'])
+            for section in self.sections:
+                section_filename_pdf = os.path.join(target_dir_zip, section['name']) + '.pdf'
+                section_filename_txt = os.path.join(target_dir_zip, section['name']) + '.txt'
 
                 section_content = \
                     ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).get_string()
 
                 euro_fx = Euro_FX()
-                euro_fx.exec(section_content)
+                section_data = euro_fx.exec(section_content)
+                dailybulletin_reports_data.append({
+                    'bulletin': bulletin['name'],
+                    'report_id': bulletin['report_id'],
+                    'section': section['section'],
+                    'data': section_data
+                })
 
-            # Delete the target directory after use
-            if self.delete:
-                shutil.rmtree(target_dir)
+        self.storage_db.insert_dailybulletin_reports_data(dailybulletin_reports_data)
+
+    def analysis(self):
+        bulletins_extracted = \
+            self.repository.extract_bulletins(
+                list(map(lambda x: {
+                    'name': x[0],
+                    'report_id': x[1],
+                    'path': x[2]
+                }, self.storage_db.get_dailybulletin_reports()[-1:])))
+
+        self.exec_analysis(bulletins_extracted)
+
+        self.repository.remove_bulletins(bulletins_extracted)

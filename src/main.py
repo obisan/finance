@@ -22,20 +22,20 @@ if __name__ == '__main__':
             soup = BeautifulSoup(xml_data, "xml")
             credentials_filename = soup.find("config").find("connect").text
             mode = soup.find("config").find("mode").text
-            repository = soup.find("config").find("repository").text
+            repository_path = soup.find("config").find("repository").text
 
             match mode:
                 case ModeExecution.DAILYBULLETIN_SYNC.value:
                     storageDb = StorageDb(filename=credentials_filename)
-                    repositoryBulletin = RepositoryBulletin(repository)
+                    repositoryBulletin = RepositoryBulletin(repository_path, Logger())
 
                     dailybulletinSync = DailybulletinSync(storageDb, repositoryBulletin, Logger())
                     dailybulletinSync.sync()
                 case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
                     storageDb = StorageDb(filename=credentials_filename)
-                    repositoryBulletin = RepositoryBulletin(repository)
+                    repositoryBulletin = RepositoryBulletin(repository_path, Logger())
 
-                    dailybulletinAnalysis = DailyBulletinAnalysis(storageDb, RepositoryBulletin, Logger())
+                    dailybulletinAnalysis = DailyBulletinAnalysis(storageDb, repositoryBulletin, Logger())
                     dailybulletinAnalysis.analysis()
                 case ModeExecution.DAILYBULLETIN_SYNC_PRODUCTS.value:
                     storageDb = StorageDb(filename=credentials_filename)

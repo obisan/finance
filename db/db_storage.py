@@ -5,9 +5,10 @@ from sqlalchemy import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from constants.enums import DailyBulletinReportsDataColumns
 from db.model import \
     DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
-    UniqueGlobex, CotReportType, Setting
+    DailyBulletinReportsData, UniqueGlobex, CotReportType, Setting
 
 Base = declarative_base()
 
@@ -50,6 +51,7 @@ class StorageDb:
         with self.session() as session:
             result = session.query(
                 func.trim(DailyBulletinReports.name),
+                DailyBulletinReports.id,
                 func.trim(DailyBulletinReports.path)).all()
         return result
 
@@ -135,4 +137,33 @@ class StorageDb:
                     path=bulletin['path'],
                     status=bulletin['status'])
                 session.add(report)
+            session.commit()
+
+    def insert_dailybulletin_reports_data(self, dailybulletin_reports_data):
+        with self.session() as session:
+            for bulletin in dailybulletin_reports_data:
+                for section in bulletin['data']:
+                    for strike in section['strikes']:
+                        record = DailyBulletinReportsData(
+                            report_id=bulletin['report_id'],
+                            section=bulletin['section'],
+                            contract=section['contract'],
+                            product=section['product'],
+                            type=strike[DailyBulletinReportsDataColumns.TYPE.value],
+                            strike=strike[DailyBulletinReportsDataColumns.STRIKE.value],
+                            strike_index=strike[DailyBulletinReportsDataColumns.STRIKE_INDEX.value],
+                            open_range=strike[DailyBulletinReportsDataColumns.OPEN_RANGE.value],
+                            high=strike[DailyBulletinReportsDataColumns.HIGH.value],
+                            low=strike[DailyBulletinReportsDataColumns.LOW.value],
+                            closing_range=strike[DailyBulletinReportsDataColumns.CLOSING_RANGE.value],
+                            settlement_price=strike[DailyBulletinReportsDataColumns.SETT_PRICE.value],
+                            point_change=strike[DailyBulletinReportsDataColumns.PT_CHGE.value],
+                            delta=strike[DailyBulletinReportsDataColumns.DELTA.value],
+                            exercises=strike[DailyBulletinReportsDataColumns.EXERCISES.value],
+                            volume_trades_cleared=strike[DailyBulletinReportsDataColumns.VOLUME_TRADES_CLEARED.value],
+                            open_interest=strike[DailyBulletinReportsDataColumns.OPEN_INTEREST.value],
+                            open_interest_delta=strike[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value],
+                            contract_high=strike[DailyBulletinReportsDataColumns.HIGH.value],
+                            contract_low=strike[DailyBulletinReportsDataColumns.LOW.value])
+                        session.add(record)
             session.commit()

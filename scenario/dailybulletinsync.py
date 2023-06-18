@@ -31,10 +31,10 @@ class DailybulletinSync:
         self.s = []
 
     def get_dailybulletin_from_cme(self):
-        # bulletin/DailyBulletin_pdf_2023021329.zip
+        # section/DailyBulletin_pdf_2023021329.zip
         dailybulletin_list = self.cme.get_dailybulletin_list()
 
-        # 0 'bulletin/DailyBulletin_pdf_2023021329'
+        # 0 'section/DailyBulletin_pdf_2023021329'
         # 1 'DailyBulletin_pdf_2023021329'
         # 2 'DailyBulletin_pdf_2023021329.zip'
         # 3 '20230213'

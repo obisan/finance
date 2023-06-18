@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, SmallInteger, Integer, String, Date, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -35,11 +35,13 @@ class DailyBulletinReports(Base):
 class DailyBulletinReportsData(Base):
     __tablename__ = 'dailybulletin_reports_data'
     # Column
-    report_id = Column(Integer, ForeignKey('dailybulletin_reports_data.id'), primary_key=True)
+    report_id = Column(Integer, ForeignKey('dailybulletin_reports.id'), primary_key=True)
     section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
     contract = Column(String(5), ForeignKey('dailybulletin_contracts.contract'), primary_key=True)
     product = Column(String(4), ForeignKey('dailybulletin_products.globex'), primary_key=True)
     strike = Column(String(8), primary_key=True)
+    strike_index = Column(SmallInteger, primary_key=True)
+    type = Column(String(8), ForeignKey('dailybulletin_sections_types.type'))
     open_range = Column(String(8))
     high = Column(String(8))
     low = Column(String(8))

@@ -29,6 +29,35 @@ class DailybulletinReportsStatus(Enum):
     DOWNLOADED = 'downloaded'
 
 
+class DailyBulletinReportsDataColumns(Enum):
+    STRIKE = "STRIKE"
+    STRIKE_INDEX = "STRIKE_INDEX"
+    OPEN_RANGE = "OPEN RANGE"
+    HIGH = "HIGH"
+    LOW = "LOW"
+    CLOSING_RANGE = "CLOSING RANGE"
+    SETT_PRICE = "SETT.PRICE"
+    PT_CHGE = "PT.CHGE."
+    DELTA = "DELTA"
+    EXERCISES = "EXERCISES"
+    VOLUME_TRADES_CLEARED = "VOLUME TRADES CLEARED"
+    OPEN_INTEREST = "OPEN INTEREST"
+    OPEN_INTEREST_DELTA = "OPEN INTEREST DELTA"
+    TYPE = "TYPE"
+
+
+class DailyBulletinSectionsTypes(Enum):
+    PUT = 'PUT'
+    CALL = 'CALL'
+    OTHER = 'OTHER'
+
+
 class CME_const(Enum):
     success = '226 Transfer complete.'
     directory_changed = '250 Directory successfully changed.'
+
+
+class ZIP(Enum):
+    extracted = 'extracted'
+    deleted = 'deleted'
+    error = 'error'
