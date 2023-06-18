@@ -15,6 +15,7 @@ connect_test.ini
 config_test_sync_bulletin.xml
 config_test_analysis.xml
 config_test_sync_product.xml
+config_test_sync_contract.xml
 
 # User-specific stuff
 .idea/**/workspace.xml
