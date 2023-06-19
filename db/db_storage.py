@@ -82,12 +82,12 @@ class StorageDb:
     def get_dailybulletin_products(self, product_names):
         with self.session() as session:
             result = session.query(
-                func.trim(DailyBulletinProducts.product),
+                func.trim(DailyBulletinProducts.name),
                 func.trim(DailyBulletinProducts.type),
                 func.trim(DailyBulletinProducts.globex),
                 func.trim(DailyBulletinProducts.clearing),
             ).filter(
-                DailyBulletinProducts.product.in_(product_names)
+                DailyBulletinProducts.name.in_(product_names)
             ).all()
         return result
 
