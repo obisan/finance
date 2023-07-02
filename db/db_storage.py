@@ -8,7 +8,8 @@ from sqlalchemy.orm import sessionmaker
 from constants.enums import DailyBulletinReportsDataColumns
 from db.model import \
     DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
-    DailyBulletinReportsData, UniqueGlobex, CotReportType, Setting, DailyBulletinContracts
+    DailyBulletinReportsData, UniqueGlobex, CotReportType, Setting, DailyBulletinContracts, \
+    DailyBulletinProductsSymbol, DailyBulletinReportContractsSymbolMonth
 
 Base = declarative_base()
 
@@ -189,5 +190,26 @@ class StorageDb:
                     itc=contract['itc'],
                     exchange_contract=contract['exchange_contract'],
                     type=contract['type'])
-                session(record)
+                session.add(record)
             session.commit()
+
+    def get_dailybulletin_products_symbol(self):
+        with self.session() as session:
+            result = session.query(
+                DailyBulletinProductsSymbol.symbol_globex).all()
+        return result
+
+    def insert_dailybulletin_products_symbol(self, symbols):
+        with self.session() as session:
+            for symbol in symbols:
+                record = DailyBulletinProductsSymbol(
+                    symbol=symbol['symbol'])
+                session.add(record)
+            session.commit()
+
+    def get_dailybulletin_report_contracts_symbol_month(self):
+        with self.session() as session:
+            result = session.query(
+                DailyBulletinReportContractsSymbolMonth.month_literal,
+                DailyBulletinReportContractsSymbolMonth.month_number).all()
+        return result

@@ -27,7 +27,12 @@ class DailyBulletinSyncProduct:
              ProductColumns.GLOBEX.value,
              ProductColumns.CLEARPORT.value]
 
-        self.unique_globex_insert, self.products_insert, self.products_update = [], [], []
+        self.contracts_symbol_month = self.storage_db.get_dailybulletin_report_contracts_symbol_month()
+
+        self.unique_globex_insert, \
+        self.product_symbols, \
+        self.products_insert, \
+        self.products_update, = [], [], [], []
 
     def sync(self):
         with requests.get(self.product_url) as response:
@@ -40,6 +45,7 @@ class DailyBulletinSyncProduct:
 
                 self.prepare_unique_globex(df)
                 self.prepare_product(df)
+                self.prepare_product_symbols(df)
                 self.sync_exec()
 
     def prepare_unique_globex(self, df):
@@ -94,6 +100,10 @@ class DailyBulletinSyncProduct:
                 )
                 self.logger.info(f"Saved product {name} {type} {globex} {clearport}")
 
+    def prepare_product_symbols(self, df):
+        parsed_data = df[self.columns_to_parse]
+        product_names = df[ProductColumns.PRODUCT_NAME.value].values.tolist()
+
     def sync_exec(self):
         if len(self.unique_globex_insert) != 0:
             self.storage_db.insert_unique_globex(self.unique_globex_insert)
@@ -101,3 +111,5 @@ class DailyBulletinSyncProduct:
             self.storage_db.insert_dailybulletin_products(self.products_insert)
         if len(self.products_update) != 0:
             self.storage_db.update_dailybulletin_products(self.products_update)
+        if len(self.product_symbols) != 0:
+            self.storage_db.insert_dailybulletin_products_symbol(self.product_symbols)

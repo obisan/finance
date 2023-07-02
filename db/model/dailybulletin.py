@@ -32,13 +32,6 @@ class DailyBulletinContracts(Base):
     type = Column(String(8))
 
 
-class DailyBulletinReportContractsSymbolMonth(Base):
-    __tablename__ = 'dailybulletin_report_contracts_symbol_month'
-    # Column
-    month_literal = Column(String(1), primary_key=True)
-    month_number = Column(SmallInteger)
-
-
 class DailyBulletinReports(Base):
     __tablename__ = 'dailybulletin_reports'
     # Column
@@ -91,7 +84,8 @@ class DailyBulletinReportsDataType(Base):
 class DailyBulletinProducts(Base):
     __tablename__ = 'dailybulletin_products'
     # Column
-    name = Column(String(64), primary_key=True)
+    id = Column(SmallInteger, primary_key=True)
+    name = Column(String(64))
     type = Column(String(16))
     globex = Column(String(4), ForeignKey('unique_globex.globex'), index=True)
     clearing = Column(String(4))
@@ -138,10 +132,17 @@ class DailyBulletinSectionsTypes(Base):
     type = Column(String(8), primary_key=True)
 
 
-class DictionarySymbol(Base):
-    __tablename__ = 'dictionary_symbol'
+class DailyBulletinProductsSymbol(Base):
+    __tablename__ = 'dailybulletin_products_symbol'
     # Column
-    symbol = Column(String(5), primary_key=True)
+    symbol_globex = Column(String(5), primary_key=True)
+
+
+class DailyBulletinReportContractsSymbolMonth(Base):
+    __tablename__ = 'dailybulletin_report_contracts_symbol_month'
+    # Column
+    month_literal = Column(String(1), primary_key=True)
+    month_number = Column(SmallInteger)
 
 
 class DictionaryYear(Base):
