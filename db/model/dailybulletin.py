@@ -11,6 +11,12 @@ class UniqueGlobex(Base):
     globex = Column(String(4), primary_key=True)
 
 
+class UniqueGlobexSymbol(Base):
+    __tablename__ = 'unique_globex_symbol'
+    # Column
+    globex = Column(String(5), primary_key=True)
+
+
 class DailyBulletinContracts(Base):
     __tablename__ = 'dailybulletin_contracts'
     # Column
@@ -135,11 +141,12 @@ class DailyBulletinSectionsTypes(Base):
 class DailyBulletinProductsSymbol(Base):
     __tablename__ = 'dailybulletin_products_symbol'
     # Column
+    product_id = Column(SmallInteger, primary_key=True)
     symbol_globex = Column(String(5), primary_key=True)
 
 
-class DailyBulletinReportContractsSymbolMonth(Base):
-    __tablename__ = 'dailybulletin_report_contracts_symbol_month'
+class DailyBulletinContractsSymbolMonth(Base):
+    __tablename__ = 'dailybulletin_contracts_symbol_month'
     # Column
     month_literal = Column(String(1), primary_key=True)
     month_number = Column(SmallInteger)

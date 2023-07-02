@@ -8,8 +8,8 @@ from sqlalchemy.orm import sessionmaker
 from constants.enums import DailyBulletinReportsDataColumns
 from db.model import \
     DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
-    DailyBulletinReportsData, UniqueGlobex, CotReportType, Setting, DailyBulletinContracts, \
-    DailyBulletinProductsSymbol, DailyBulletinReportContractsSymbolMonth
+    DailyBulletinReportsData, UniqueGlobex, UniqueGlobexSymbol, CotReportType, Setting, DailyBulletinContracts, \
+    DailyBulletinProductsSymbol, DailyBulletinContractsSymbolMonth
 
 Base = declarative_base()
 
@@ -116,6 +116,20 @@ class StorageDb:
                 session.add(record)
             session.commit()
 
+    def get_unique_globex_symbol(self):
+        with self.session() as session:
+            result = session.query(
+                func.trim(UniqueGlobexSymbol.globex)).all()
+        return result
+
+    def insert_unique_globex_symbol(self, globexes):
+        with self.session() as session:
+            for globex in globexes:
+                record = UniqueGlobexSymbol(
+                    globex=globex['globex_symbol'])
+                session.add(record)
+            session.commit()
+
     def update_dailybulletin_products(self, products):
         s = 0
         # with self.session() as session:
@@ -196,6 +210,7 @@ class StorageDb:
     def get_dailybulletin_products_symbol(self):
         with self.session() as session:
             result = session.query(
+                DailyBulletinProductsSymbol.product_id,
                 DailyBulletinProductsSymbol.symbol_globex).all()
         return result
 
@@ -203,13 +218,14 @@ class StorageDb:
         with self.session() as session:
             for symbol in symbols:
                 record = DailyBulletinProductsSymbol(
-                    symbol=symbol['symbol'])
+                    product_id=symbol['product_id'],
+                    symbol_globex=symbol['symbol_globex'])
                 session.add(record)
             session.commit()
 
     def get_dailybulletin_report_contracts_symbol_month(self):
         with self.session() as session:
             result = session.query(
-                DailyBulletinReportContractsSymbolMonth.month_literal,
-                DailyBulletinReportContractsSymbolMonth.month_number).all()
+                DailyBulletinContractsSymbolMonth.month_literal,
+                DailyBulletinContractsSymbolMonth.month_number).all()
         return result
