@@ -80,9 +80,20 @@ class StorageDb:
                 .all()
         return result
 
-    def get_dailybulletin_products(self, product_names):
+    def get_dailybulletin_products(self):
         with self.session() as session:
             result = session.query(
+                DailyBulletinProducts.id,
+                func.trim(DailyBulletinProducts.name),
+                func.trim(DailyBulletinProducts.type),
+                func.trim(DailyBulletinProducts.globex),
+                func.trim(DailyBulletinProducts.clearing), ).all()
+        return result
+
+    def get_dailybulletin_products_by_names(self, product_names):
+        with self.session() as session:
+            result = session.query(
+                DailyBulletinProducts.id,
                 func.trim(DailyBulletinProducts.name),
                 func.trim(DailyBulletinProducts.type),
                 func.trim(DailyBulletinProducts.globex),
@@ -211,7 +222,26 @@ class StorageDb:
         with self.session() as session:
             result = session.query(
                 DailyBulletinProductsSymbol.product_id,
-                DailyBulletinProductsSymbol.symbol_globex).all()
+                func.trim(DailyBulletinProducts.name),
+                func.trim(DailyBulletinProductsSymbol.symbol_globex)
+            ).join(
+                DailyBulletinProducts,
+                DailyBulletinProductsSymbol.product_id == DailyBulletinProducts.id
+            ).all()
+        return result
+
+    def get_dailybulletin_products_symbol_by_names(self, names):
+        with self.session() as session:
+            result = session.query(
+                DailyBulletinProductsSymbol.product_id,
+                func.trim(DailyBulletinProducts.name),
+                DailyBulletinProductsSymbol.symbol_globex
+            ).join(
+                DailyBulletinProducts,
+                DailyBulletinProductsSymbol.product_id == DailyBulletinProducts.id
+            ).filter(
+                DailyBulletinProducts.name.in_(names)
+            ).all()
         return result
 
     def insert_dailybulletin_products_symbol(self, symbols):

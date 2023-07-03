@@ -14,10 +14,39 @@ class ProductColumns(enum.Enum):
     CLEARPORT = 'Clearport'
 
 
+class Globex:
+    def __init__(self, storage_db):
+        self.storage_db = storage_db
+        self.contracts_symbol_month = self.storage_db.get_dailybulletin_report_contracts_symbol_month()
+        self.globex_symbol = []
+
+    def build(self, product_globex):
+        for globex in product_globex:
+            for symbol in self.contracts_symbol_month:
+                for i in range(0, 10):
+                    self.globex_symbol.append(
+                        str(globex) + str(symbol[0]) + str(i))
+
+    def clear(self):
+        self.globex_symbol = []
+
+    def get_globex_list(self, product_globex):
+        self.clear()
+        self.build(product_globex)
+        return self.globex_symbol
+
+    def convert_globex_to_list(self, globex):
+        self.clear()
+        self.build([globex])
+        return self.globex_symbol
+
+
 class DailyBulletinSyncProduct:
     def __init__(self, storage_db, logger=None):
         self.storage_db = storage_db
         self.logger = logger
+
+        self.globex = Globex(storage_db)
 
         self.skip_rows = 1
         self.product_url = self.storage_db.get_setting(Setting.CME_PRODUCT_URL.value)
@@ -69,32 +98,31 @@ class DailyBulletinSyncProduct:
         unique_globex_symbols = self.storage_db.get_unique_globex_symbol()
         unique_globex_symbols.sort(key=lambda l_globex: l_globex[0])
 
-        for globex in product_globex:
-            for symbol in self.contracts_symbol_month:
-                for i in range(0, 10):
+        unique_globex_symbol_values = [unique_globex_symbol[0] for unique_globex_symbol in unique_globex_symbols]
 
-                    globex_symbol = str(globex) + str(symbol[0]) + str(i)
+        globex_list = self.globex.get_globex_list(product_globex)
+        self.globex.clear()
 
-                    index = bisect.bisect_left(
-                        [unique_globex_symbol[0] for unique_globex_symbol in unique_globex_symbols],
-                        globex_symbol)
+        for globex in globex_list:
+            index = bisect.bisect_left(unique_globex_symbol_values, globex)
 
-                    if index != len(unique_globex_symbols) and unique_globex_symbols[index][0] == globex_symbol:
-                        continue
+            if index != len(unique_globex_symbols) and unique_globex_symbols[index][0] == globex:
+                continue
 
-                    self.unique_globex_symbol_insert.append(
-                        {
-                            'globex_symbol': globex_symbol
-                        }
-                    )
-                    self.logger.info(f"Saved globex_symbol {globex_symbol}")
+            self.unique_globex_symbol_insert.append(
+                {
+                    'globex_symbol': globex
+                }
+            )
+            self.logger.info(f"Saved globex_symbol {globex}")
 
     def prepare_product(self, df):
         parsed_data = df[self.columns_to_parse]
         product_names = df[ProductColumns.PRODUCT_NAME.value].values.tolist()
 
-        products = self.storage_db.get_dailybulletin_products(product_names)
-        products.sort(key=lambda product: product[0])
+        products = self.storage_db.get_dailybulletin_products_by_names(product_names)
+        products.sort(key=lambda product: product[1])
+        products_values = [product[1] for product in products]
 
         for index, row in parsed_data.iterrows():
             name = row[ProductColumns.PRODUCT_NAME.value]
@@ -102,11 +130,11 @@ class DailyBulletinSyncProduct:
             globex = row[ProductColumns.GLOBEX.value]
             clearport = row[ProductColumns.CLEARPORT.value]
 
-            index = bisect.bisect_left([product[0] for product in products], name)
-            if index != len(products) and products[index][0] == name:
-                if products[index][1] != type \
-                        or products[index][2] != globex \
-                        or products[index][3] != clearport:
+            index = bisect.bisect_left(products_values, name)
+            if index != len(products) and products[index][1] == name:
+                if products[index][2] != type \
+                        or products[index][3] != globex \
+                        or products[index][4] != clearport:
                     self.products_update.append(
                         {
                             'name': name,
@@ -130,38 +158,43 @@ class DailyBulletinSyncProduct:
         parsed_data = df[self.columns_to_parse]
         product_names = df[ProductColumns.PRODUCT_NAME.value].values.tolist()
 
-        products = self.storage_db.get_dailybulletin_products(product_names)
-        products.sort(key=lambda product: product[0])
+        products = self.storage_db.get_dailybulletin_products_by_names(product_names)
+        products.sort(key=lambda product: product[1])
+        products_values = [product[1] for product in products]
+
+        products_symbols_db = self.storage_db.get_dailybulletin_products_symbol()
+        products_symbols_db.sort(key=lambda product_symbol: (product_symbol[1], product_symbol[2]))
+        products_symbols_db_values = [(product_symbol[1], product_symbol[2]) for product_symbol in products_symbols_db]
 
         for index, row in parsed_data.iterrows():
             name = row[ProductColumns.PRODUCT_NAME.value]
-            type = row[ProductColumns.FUTURES_OPTIONS.value]
             globex = row[ProductColumns.GLOBEX.value]
-            clearport = row[ProductColumns.CLEARPORT.value]
 
-            index = bisect.bisect_left([product[0] for product in products], name)
-            if index != len(products) and products[index][0] == name:
-                if products[index][1] != type \
-                        or products[index][2] != globex \
-                        or products[index][3] != clearport:
-                    self.products_update.append(
-                        {
-                            'name': name,
-                            'type': type,
-                            'globex': globex,
-                            'clearport': clearport
-                        }
-                    )
-            else:
-                self.products_insert.append(
+            list_globex = self.globex.convert_globex_to_list(globex)
+
+            for current_globex in list_globex:
+
+                left = bisect.bisect_left(products_symbols_db_values, (name, current_globex))
+                right = bisect.bisect_right(products_symbols_db_values, (name, current_globex))
+
+                current_product = products_symbols_db[left:right]
+
+                if len(current_product) != 0:
+                    continue
+
+                index = bisect.bisect_left(products_values, name)
+                if index != len(products) and products[index][1] == name:
+                    product_id = products[index][0]
+                else:
+                    continue
+
+                self.product_symbols.append(
                     {
-                        'name': name,
-                        'type': type,
-                        'globex': globex,
-                        'clearport': clearport
+                        'product_id': product_id,
+                        'symbol_globex': current_globex,
                     }
                 )
-                self.logger.info(f"Saved product {name} {type} {globex} {clearport}")
+                self.logger.info(f"Saved product-globex link: {product_id} {current_globex}")
 
     def sync_exec(self):
         if len(self.unique_globex_insert) != 0:
