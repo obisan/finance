@@ -1,3 +1,4 @@
+import bisect
 import re
 
 from constants.enums import DailyBulletinReportsDataColumns
@@ -6,7 +7,9 @@ from constants.enums import DailyBulletinSectionsTypes
 
 class Euro_FX:
 
-    def __init__(self):
+    def __init__(self, globex=None):
+
+        self.globex = globex
 
         # Контракт это MAR23 | APR23 | MAY23 и т.д.
         self.pattern_contract_head = \
@@ -58,26 +61,37 @@ class Euro_FX:
              DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value,
              DailyBulletinReportsDataColumns.HIGH.value,
              DailyBulletinReportsDataColumns.LOW.value
-             # DailyBulletinReportsDataColumns.STRIKE_INDEX.value,
-             # DailyBulletinReportsDataColumns.TYPE.value
              ]
 
-        self.section = []
+        self.months = [
+            {'month': 'APR', 'value': 4},
+            {'month': 'AUG', 'value': 8},
+            {'month': 'DEC', 'value': 12},
+            {'month': 'FEB', 'value': 2},
+            {'month': 'JAN', 'value': 1},
+            {'month': 'JUL', 'value': 7},
+            {'month': 'JUN', 'value': 6},
+            {'month': 'MAR', 'value': 3},
+            {'month': 'MAY', 'value': 5},
+            {'month': 'NOV', 'value': 11},
+            {'month': 'OCT', 'value': 10},
+            {'month': 'SEP', 'value': 9}]
+
+        self.months.sort(key=lambda x: x['month'])
+
+        self.months_values = [month['month'] for month in self.months]
+
+        self.sections = []
         self.strike_lines = []
 
     def exec(self, section_content):
-        values_expiration = \
-            self.expiration(section_content)
-
-        # pattern_strike_head = \
-        #     self.pattern_contract_head.replace(
-        #         '%s', ('JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC'.join([re.escape(name) for name, _, _ in values_expiration])))
-
         pattern_strike_head = \
             r'(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2})\s+(\S{3})\s+OPT'
 
         contract = ''
         product = ''
+        globex = ''
+        year = ''
         option_type = DailyBulletinSectionsTypes.PUT.value
         strike_last = {
             'strike': '',
@@ -86,7 +100,10 @@ class Euro_FX:
         for content in section_content:
             matches_option_section = re.match(self.pattern_option_section, content)
             if matches_option_section:
-                self.add_section(contract, product, self.strike_lines)
+                month = self.convert_month_2_value(contract[0:3])
+                year = '20' + str(contract[3:5])
+                globex = self.globex.convert(month, year, product)
+                self.add_section(globex, year, self.strike_lines)
                 self.strike_lines = []
                 option_type = DailyBulletinSectionsTypes.CALL.value
                 contract = ''
@@ -95,13 +112,16 @@ class Euro_FX:
             matches_strike_head = re.match(pattern_strike_head, content)
             if matches_strike_head:
                 values = matches_strike_head.groups()
+                month = self.convert_month_2_value(values[0])
+                year = '20' + str(values[1])
+                globex = self.globex.convert(month, year, values[2])
                 if (values[0] + values[1]) != contract:
-                    self.add_section(contract, product, self.strike_lines)
+                    self.add_section(globex, year, self.strike_lines)
                     self.strike_lines = []
                     contract = values[0] + values[1]
                     product = ''
                 if values[2] != product:
-                    self.add_section(contract, product, self.strike_lines)
+                    self.add_section(globex, year, self.strike_lines)
                     self.strike_lines = []
                     product = values[2]
 
@@ -109,7 +129,7 @@ class Euro_FX:
             if matches_columns_data:
                 self.add_strike_line(self.strike_lines, matches_columns_data.groups(), strike_last, option_type)
 
-        return self.section
+        return self.sections
 
     def expiration(self, section_content):
         values_expiration_name, values_expiration_date, values_expiration = (), (), ()
@@ -133,15 +153,22 @@ class Euro_FX:
 
         return values_expiration
 
-    def add_section(self, contract, product, strike_lines):
+    def add_section(self, globex, year, strike_lines):
         if len(strike_lines) == 0:
             return
-        self.section.append(
-            {
-                'contract': contract,
-                'product': product,
-                'strikes': strike_lines
-            })
+        sections_values = [(section['globex'], section['year']) for section in self.sections]
+        index = bisect.bisect_left(sections_values, (globex, year))
+        if index != len(self.sections):
+            return
+        else:
+            self.sections.insert(
+                index,
+                {
+                    'globex': globex,
+                    'year': year,
+                    'strikes': strike_lines
+                }
+            )
 
     def add_strike_line(self, strike_lines, values, strike_last, option_type):
         strike_line = dict(zip(self.columns_data, values))
@@ -155,3 +182,8 @@ class Euro_FX:
         strike_line[DailyBulletinReportsDataColumns.STRIKE_INDEX.value] = strike_last['strike_index']
         strike_line[DailyBulletinReportsDataColumns.TYPE.value] = option_type
         strike_lines.append(strike_line)
+
+    def convert_month_2_value(self, month):
+        index = bisect.bisect_left(self.months_values, month)
+        if index != len(self.months) and self.months[index]['month'] == month:
+            return self.months[index]['value']

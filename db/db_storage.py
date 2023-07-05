@@ -173,8 +173,8 @@ class StorageDb:
                         record = DailyBulletinReportsData(
                             report_id=bulletin['report_id'],
                             section=bulletin['section'],
-                            contract=section['contract'],
-                            product=section['product'],
+                            globex=section['globex'],
+                            year=section['year'],
                             type=strike[DailyBulletinReportsDataColumns.TYPE.value],
                             strike=strike[DailyBulletinReportsDataColumns.STRIKE.value],
                             strike_index=strike[DailyBulletinReportsDataColumns.STRIKE_INDEX.value],
@@ -253,7 +253,7 @@ class StorageDb:
                 session.add(record)
             session.commit()
 
-    def get_dailybulletin_report_contracts_symbol_month(self):
+    def get_dailybulletin_contracts_symbol_month(self):
         with self.session() as session:
             result = session.query(
                 DailyBulletinContractsSymbolMonth.month_literal,

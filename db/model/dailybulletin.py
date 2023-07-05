@@ -56,7 +56,7 @@ class DailyBulletinReportsData(Base):
     # Column
     report_id = Column(Integer, ForeignKey('dailybulletin_reports.id'), primary_key=True)
     section = Column(String(8), ForeignKey('dailybulletin_sections.section'), primary_key=True)
-    symbol = Column(String(5), ForeignKey('dictionary_symbol.symbol'), primary_key=True)
+    globex = Column(String(5), ForeignKey('unique_globex_symbol.globex'), primary_key=True)
     year = Column(String(4), ForeignKey('dictionary_year.year'), primary_key=True)
     strike = Column(String(8), primary_key=True)
     strike_index = Column(SmallInteger, primary_key=True)

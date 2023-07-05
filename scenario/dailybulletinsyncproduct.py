@@ -17,7 +17,7 @@ class ProductColumns(enum.Enum):
 class Globex:
     def __init__(self, storage_db):
         self.storage_db = storage_db
-        self.contracts_symbol_month = self.storage_db.get_dailybulletin_report_contracts_symbol_month()
+        self.contracts_symbol_month = self.storage_db.get_dailybulletin_contracts_symbol_month()
         self.globex_symbol = []
 
     def build(self, product_globex):
@@ -56,7 +56,7 @@ class DailyBulletinSyncProduct:
              ProductColumns.GLOBEX.value,
              ProductColumns.CLEARPORT.value]
 
-        self.contracts_symbol_month = self.storage_db.get_dailybulletin_report_contracts_symbol_month()
+        self.contracts_symbol_month = self.storage_db.get_dailybulletin_contracts_symbol_month()
 
         self.unique_globex_insert, self.unique_globex_symbol_insert = [], []
         self.product_symbols = []
@@ -83,6 +83,11 @@ class DailyBulletinSyncProduct:
         unique_globexes = self.storage_db.get_unique_globex()
         unique_globexes.sort(key=lambda l_globex: l_globex[0])
 
+        product_globex.append('TEC')
+        product_globex.append('WEC')
+        product_globex.append('SEC')
+        product_globex.append('MEM')
+
         for globex in product_globex:
             index = bisect.bisect_left([unique_globex[0] for unique_globex in unique_globexes], globex)
 
@@ -95,12 +100,15 @@ class DailyBulletinSyncProduct:
     def prepare_unique_symbol_globex(self, df):
         product_globex = df[ProductColumns.GLOBEX.value].unique().tolist()
 
+        unique_globex = self.storage_db.get_unique_globex()
+        unique_globex = [x[0] for x in unique_globex]
+
         unique_globex_symbols = self.storage_db.get_unique_globex_symbol()
         unique_globex_symbols.sort(key=lambda l_globex: l_globex[0])
 
         unique_globex_symbol_values = [unique_globex_symbol[0] for unique_globex_symbol in unique_globex_symbols]
 
-        globex_list = self.globex.get_globex_list(product_globex)
+        globex_list = self.globex.get_globex_list(unique_globex)
         self.globex.clear()
 
         for globex in globex_list:

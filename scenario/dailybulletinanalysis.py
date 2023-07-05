@@ -1,6 +1,7 @@
 import os
 
 from cme import Euro_FX
+from cme.bulletin import Globex
 from constants.enums import DailyBulletinSection
 from convert.converter import ConverterPDFtoTXT
 
@@ -11,6 +12,7 @@ class DailyBulletinAnalysis:
         self.storage_db = storage_db
         self.repository = repository
         self.logger = logger
+        self.globex = Globex(storage_db)
 
         sections = [str(DailyBulletinSection.EURO_FX.value)]
         self.sections = \
@@ -30,7 +32,7 @@ class DailyBulletinAnalysis:
                 section_content = \
                     ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).get_string()
 
-                euro_fx = Euro_FX()
+                euro_fx = Euro_FX(globex=self.globex)
                 section_data = euro_fx.exec(section_content)
                 dailybulletin_reports_data.append({
                     'bulletin': bulletin['name'],
