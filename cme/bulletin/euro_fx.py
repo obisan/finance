@@ -5,6 +5,25 @@ from constants.enums import DailyBulletinReportsDataColumns
 from constants.enums import DailyBulletinSectionsTypes
 
 
+def add_section_strikes(section_strikes, strike_lines):
+    for strike_line in strike_lines:
+        section_strikes.append(strike_line)
+    section_strikes.sort(
+        key=lambda x:
+        (x[DailyBulletinReportsDataColumns.STRIKE.value],
+         x[DailyBulletinReportsDataColumns.STRIKE_INDEX.value]))
+    strike_prev = ''
+    strike_index = 0
+    for strike in section_strikes:
+        strike_curr = strike[DailyBulletinReportsDataColumns.STRIKE.value]
+        if strike_curr != strike_prev:
+            strike_index = 0
+            strike_prev = strike_curr
+        else:
+            strike_index = strike_index + 1
+        strike[DailyBulletinReportsDataColumns.STRIKE_INDEX.value] = strike_index
+
+
 class Euro_FX:
 
     def __init__(self, globex=None):
@@ -16,8 +35,8 @@ class Euro_FX:
             r'(%s)\s+(\S+)\s+OPT'
 
         self.pattern_contract_data = \
-            r'^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+\s?[+-]?)\s+(\S+)\s+(\S+)\s+(\S+)\s+(' \
-            r'\S+)\s+(\d+\s?[+-]?|-{4})\s+(\S+)\s+(\S+)\s+(\S+)$'
+            '^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+([^\s\-+]+)([+-]?\s+\S+)\s+' \
+            '(\S+)\s+(\S+)\s+(\S+)\s+(\d+\s?|-{4})([+-]?\s+\S+)\s+(\S+)\s+(\S+)$'
 
         self.pattern_expiration_name = \
             r'\s+EXPIRATION: ' \
@@ -90,8 +109,6 @@ class Euro_FX:
 
         contract = ''
         product = ''
-        globex = ''
-        year = ''
         option_type = DailyBulletinSectionsTypes.PUT.value
         strike_last = {
             'strike': '',
@@ -158,9 +175,17 @@ class Euro_FX:
             return
         sections_values = [(section['globex'], section['year']) for section in self.sections]
         index = bisect.bisect_left(sections_values, (globex, year))
-        if index != len(self.sections):
-            return
+        if index != len(self.sections) \
+                and self.sections[index]['globex'] == globex \
+                and self.sections[index]['year'] == year:
+
+            add_section_strikes(self.sections[index]['strikes'], strike_lines)
+
         else:
+            strike_lines.sort(
+                key=lambda x:
+                (x[DailyBulletinReportsDataColumns.STRIKE.value],
+                 x[DailyBulletinReportsDataColumns.STRIKE_INDEX.value]))
             self.sections.insert(
                 index,
                 {
@@ -179,8 +204,31 @@ class Euro_FX:
             strike_last['strike'] = strike_line[DailyBulletinReportsDataColumns.STRIKE.value]
             strike_last['strike_index'] = 0
 
+        strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value] = \
+            strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value].replace(' ', '')
+        strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value] = \
+            strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value].replace(' ', '')
+
+        strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value] = \
+            strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value].replace('+', '')
+        strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value] = \
+            strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value].replace('+', '')
+
+        if strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value].find('-') != -1:
+            strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value] = \
+                strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value].replace('-', '')
+            strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value] = \
+                strike_line[DailyBulletinReportsDataColumns.PT_CHGE.value] + '-'
+
+        if strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value].find('-') != -1:
+            strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value] = \
+                strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value].replace('-', '')
+            strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value] = \
+                strike_line[DailyBulletinReportsDataColumns.OPEN_INTEREST_DELTA.value] + '-'
+
         strike_line[DailyBulletinReportsDataColumns.STRIKE_INDEX.value] = strike_last['strike_index']
         strike_line[DailyBulletinReportsDataColumns.TYPE.value] = option_type
+
         strike_lines.append(strike_line)
 
     def convert_month_2_value(self, month):
