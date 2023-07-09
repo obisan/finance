@@ -35,8 +35,9 @@ class Euro_FX:
             r'(%s)\s+(\S+)\s+OPT'
 
         self.pattern_contract_data = \
-            '^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+([^\s\-+]+)([+-]?\s+\S+)\s+' \
-            '(\S+)\s+(\S+)\s+(\S+)\s+(\d+\s?|-{4})([+-]?\s+\S+)\s+(\S+)\s+(\S+)$'
+            '^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(CAB|-{4}|\d*\.?\d*\s*)' \
+            '(\s?[+-]?\s+(?:NEW|UNCH|\d*\.?\d*|-{4}))\s+(\S+)\s+(\S+)\s+(\S+)\s+' \
+            '(\d+\s?|-{4})\s+([+-]?\s+\S+)\s+(\S+)\s+(\S+)$'
 
         self.pattern_expiration_name = \
             r'\s+EXPIRATION: ' \
@@ -105,7 +106,7 @@ class Euro_FX:
 
     def exec(self, section_content):
         pattern_strike_head = \
-            r'(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2})\s+(\S{3})\s+OPT'
+            r'(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|MEM|SEC|TEC|WEC)(\d{2})\s+(\S{3})\s+OPT'
 
         contract = ''
         product = ''
@@ -125,6 +126,9 @@ class Euro_FX:
                 option_type = DailyBulletinSectionsTypes.CALL.value
                 contract = ''
                 product = ''
+
+            if option_type == DailyBulletinSectionsTypes.CALL.value and product == 'MEM' and contract == 'JUN23':
+                s = 0
 
             matches_strike_head = re.match(pattern_strike_head, content)
             if matches_strike_head:

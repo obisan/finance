@@ -2,10 +2,11 @@ import configparser
 
 from sqlalchemy import create_engine
 from sqlalchemy import func
+from sqlalchemy import update
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from constants.enums import DailyBulletinReportsDataColumns
+from constants.enums import DailyBulletinReportsDataColumns, DailybulletinReportsStatus
 from db.model import \
     DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
     DailyBulletinReportsData, UniqueGlobex, UniqueGlobexSymbol, CotReportType, Setting, DailyBulletinContracts, \
@@ -53,15 +54,23 @@ class StorageDb:
             result = session.query(
                 func.trim(DailyBulletinReports.name),
                 DailyBulletinReports.id,
-                func.trim(DailyBulletinReports.path)).all()
+                func.trim(DailyBulletinReports.path)
+            ).filter_by(status=DailybulletinReportsStatus.DOWNLOADED.value).all()
         return result
+
+    def update_dailybulletin_reports_status(self, reports_id, status):
+        with self.session() as session:
+            for report_id in reports_id:
+                sql = update(DailyBulletinReports).where(DailyBulletinReports.id == report_id).values(status=status)
+                session.execute(sql)
+            session.commit()
 
     def get_dailybulletin_reports_by_names(self, names):
         with self.session() as session:
             result = session.query(
                 DailyBulletinReports.id,
-                func.trim(DailyBulletinReports.name)). \
-                filter(DailyBulletinReports.name.in_(names)).all()
+                func.trim(DailyBulletinReports.name)
+            ).filter(DailyBulletinReports.name.in_(names)).all()
         return result
 
     def get_dailybulletin_sections_by_section(self, sections):

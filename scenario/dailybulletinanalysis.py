@@ -23,6 +23,7 @@ class DailyBulletinAnalysis:
 
     def exec_analysis(self, bulletins):
         dailybulletin_reports_data = []
+        dailybulletin_reports_preprocessed = []
         for bulletin in bulletins:
             target_dir_zip = os.path.join(os.curdir, bulletin['name'])
             for section in self.sections:
@@ -31,6 +32,7 @@ class DailyBulletinAnalysis:
 
                 section_content = \
                     ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).get_string()
+                ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).save()
 
                 euro_fx = Euro_FX(globex=self.globex)
                 section_data = euro_fx.exec(section_content)
@@ -41,7 +43,12 @@ class DailyBulletinAnalysis:
                     'data': section_data
                 })
 
+                dailybulletin_reports_preprocessed.append(bulletin)
+
         self.storage_db.insert_dailybulletin_reports_data(dailybulletin_reports_data)
+        # self.storage_db.update_dailybulletin_reports_status(
+        #     [dailybulletin_report['report_id'] for dailybulletin_report in dailybulletin_reports_preprocessed],
+        #     DailybulletinReportsStatus.PREPROCESSED.value)
 
     def analysis(self):
         bulletins_extracted = \
