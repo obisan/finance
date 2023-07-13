@@ -3,6 +3,7 @@ import os
 from cme import Euro_FX
 from cme.bulletin import Globex
 from constants.enums import DailyBulletinSection
+from constants.enums import DailybulletinReportsStatus
 from convert.converter import ConverterPDFtoTXT
 
 
@@ -32,7 +33,7 @@ class DailyBulletinAnalysis:
 
                 section_content = \
                     ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).get_string()
-                ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).save()
+                # ConverterPDFtoTXT(section_filename_pdf, section_filename_txt, self.logger).save()
 
                 euro_fx = Euro_FX(globex=self.globex)
                 section_data = euro_fx.exec(section_content)
@@ -46,9 +47,9 @@ class DailyBulletinAnalysis:
                 dailybulletin_reports_preprocessed.append(bulletin)
 
         self.storage_db.insert_dailybulletin_reports_data(dailybulletin_reports_data)
-        # self.storage_db.update_dailybulletin_reports_status(
-        #     [dailybulletin_report['report_id'] for dailybulletin_report in dailybulletin_reports_preprocessed],
-        #     DailybulletinReportsStatus.PREPROCESSED.value)
+        self.storage_db.update_dailybulletin_reports_status(
+            [dailybulletin_report['report_id'] for dailybulletin_report in dailybulletin_reports_preprocessed],
+            DailybulletinReportsStatus.PREPROCESSED.value)
 
     def analysis(self):
         bulletins_extracted = \

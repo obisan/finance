@@ -8,7 +8,8 @@ from sqlalchemy.orm import sessionmaker
 
 from constants.enums import DailyBulletinReportsDataColumns, DailybulletinReportsStatus
 from db.model import \
-    DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, DailyBulletinProducts, \
+    DailyBulletinReports, DailyBulletinSections, DailyBulletinSectionsNames, \
+    DailyBulletinExpiration, DailyBulletinProducts, \
     DailyBulletinReportsData, UniqueGlobex, UniqueGlobexSymbol, CotReportType, Setting, DailyBulletinContracts, \
     DailyBulletinProductsSymbol, DailyBulletinContractsSymbolMonth
 
@@ -147,6 +148,19 @@ class StorageDb:
             for globex in globexes:
                 record = UniqueGlobexSymbol(
                     globex=globex['globex_symbol'])
+                session.add(record)
+            session.commit()
+
+    def insert_dailybulletin_expiration(self, expirations):
+        with self.session() as session:
+            for expiration in expirations:
+                record = DailyBulletinExpiration(
+                    option_symbol=expiration['option_symbol'],
+                    product_id=expiration['product_id'],
+                    underlying_symbol=expiration['underlying_symbol'],
+                    option_first_avail_date=expiration['option_first_avail_date'],
+                    option_expiration_date=expiration['option_expiration_date'],
+                    underlying_expiration_date=expiration['underlying_expiration_date'])
                 session.add(record)
             session.commit()
 

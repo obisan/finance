@@ -11,31 +11,39 @@ class DailyBulletinSyncContract:
         self.storage_db = storage_db
         self.logger = logger
 
-        self.skip_rows = 1
-        self.contract_url = self.storage_db.get_setting(Setting.CME_CONTRACT_URL.value)
-        # self.columns_to_parse = \
-        #     [ProductColumns.PRODUCT_NAME.value,
-        #      ProductColumns.FUTURES_OPTIONS.value,
-        #      ProductColumns.GLOBEX.value,
-        #      ProductColumns.CLEARPORT.value]
+        self.columns = [
+            'Option First Avail Date',
+            'Option Expiration Date (CT)',
+            'Option Product',
+            'Option Symbol',
+            'Underlying Symbol',
+            'Underlying Expiration Date (CT)']
 
-        # self.unique_globex_insert, self.products_insert, self.products_update = [], [], []
+        self.skip_rows = 0
+        self.contract_url = self.storage_db.get_setting(Setting.CME_CONTRACT_URL.value)
+        self.products_url = [
+            self.storage_db.get_setting(Setting.CME_PRODUCT_URL_EUR.value),
+            self.storage_db.get_setting(Setting.CME_PRODUCT_URL_AUD.value),
+            self.storage_db.get_setting(Setting.CME_PRODUCT_URL_JPY.value),
+            self.storage_db.get_setting(Setting.CME_PRODUCT_URL_GBP.value),
+            self.storage_db.get_setting(Setting.CME_PRODUCT_URL_CHF.value),
+            self.storage_db.get_setting(Setting.CME_PRODUCT_URL_CAD.value)]
 
     def sync(self):
-        with requests.get(self.contract_url) as response:
-            if response.status_code == 200:
-                content = response.content
-                csv_data = io.StringIO(content.decode('utf-8'))
+        for product_url in self.products_url:
+            with requests.get(product_url) as response:
+                if response.status_code == 200:
+                    csv_content = response.content
+                    csv_file = io.BytesIO(csv_content)
 
-                df = pd.read_csv(csv_data)
-                df.columns = df.columns.str.strip()
+                    df = pd.read_csv(csv_file, skiprows=self.skip_rows)
+                    df.columns = df.columns.str.strip()
 
-                for s in df.values:
-                    print(s)
+                    parsed_data = df[self.columns]
 
-                # pd.set_option('display.max_rows', None)
-                # pd.set_option('display.max_columns', None)
-                # print(df.head())
+                    print(parsed_data.head())
+
+
 
         self.storage_db.insert_dailybulletin_contracts()
 

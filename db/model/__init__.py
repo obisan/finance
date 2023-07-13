@@ -2,6 +2,7 @@ from .cot_report import CotReportType
 from .dailybulletin import DailyBulletinContracts
 from .dailybulletin import DailyBulletinContracts
 from .dailybulletin import DailyBulletinContractsSymbolMonth
+from .dailybulletin import DailyBulletinExpiration
 from .dailybulletin import DailyBulletinProducts
 from .dailybulletin import DailyBulletinProductsSymbol
 from .dailybulletin import DailyBulletinReports
@@ -18,7 +19,7 @@ from .setting import Setting
 
 __all__ = \
  ['DailyBulletinProductsSymbol', 'DictionaryYear',
-  'DailyBulletinReports', 'DailyBulletinSections',
+  'DailyBulletinReports', 'DailyBulletinSections', 'DailyBulletinExpiration',
   'DailyBulletinSectionsTypes', 'DailyBulletinSectionsNames',
   'DailyBulletinSectionsSubsections', 'DailyBulletinReportsStatus',
   'DailyBulletinProducts', 'DailyBulletinContracts', 'DailyBulletinReportsData',
