@@ -151,11 +151,24 @@ class StorageDb:
                 session.add(record)
             session.commit()
 
+    def get_dailybulletin_expiration(self):
+        with self.session() as session:
+            result = session.query(
+                DailyBulletinExpiration.option_symbol,
+                DailyBulletinExpiration.year,
+                DailyBulletinExpiration.product_id,
+                DailyBulletinExpiration.underlying_symbol,
+                DailyBulletinExpiration.option_first_avail_date,
+                DailyBulletinExpiration.option_expiration_date,
+                DailyBulletinExpiration.underlying_expiration_date).all()
+        return result
+
     def insert_dailybulletin_expiration(self, expirations):
         with self.session() as session:
             for expiration in expirations:
                 record = DailyBulletinExpiration(
                     option_symbol=expiration['option_symbol'],
+                    year=expiration['year'],
                     product_id=expiration['product_id'],
                     underlying_symbol=expiration['underlying_symbol'],
                     option_first_avail_date=expiration['option_first_avail_date'],

@@ -91,6 +91,7 @@ class DailyBulletinExpiration(Base):
     __tablename__ = 'dailybulletin_expiration'
     # Column
     option_symbol = Column(String(5), ForeignKey('unique_globex_symbol.globex'), primary_key=True)
+    year = Column(String(4), ForeignKey('dictionary_year.year'), primary_key=True)
     product_id = Column(SmallInteger, ForeignKey('dailybulletin_products.id'))
     underlying_symbol = Column(String(4))
     option_first_avail_date = Column(Date)

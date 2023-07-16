@@ -1,4 +1,5 @@
 import bisect
+import datetime
 import io
 
 import pandas as pd
@@ -54,6 +55,14 @@ class DailyBulletinSyncContract:
         products.sort(key=lambda x: x[1])
         products_values = [product[1] for product in products]
 
+        expirations_db = self.storage_db.get_dailybulletin_expiration()
+        expirations_db.sort(key=lambda x: (x[0], x[1]))
+        expirations_db_values = [(expiration_db[0], expiration_db[1]) for expiration_db in expirations_db]
+
+        today = datetime.date.today()
+        current_year = today.year
+        current_decade = current_year - (current_year % 10)
+        current_year_str = str(current_year)
         for index, row in combined_data.iterrows():
             option_symbol = row['Option Symbol']
             option_product = row['Option Product']
@@ -62,14 +71,27 @@ class DailyBulletinSyncContract:
             option_expiration_date = row['Option Expiration Date (CT)']
             underlying_expiration_date = row['Underlying Expiration Date (CT)']
 
+            if option_symbol[4] < current_year_str[3]:
+                next_decade = current_decade + 10
+                year = next_decade + int(option_symbol[4])
+            else:
+                year = current_decade + int(option_symbol[4])
+
             index_product = bisect.bisect_left(products_values, option_product)
             if index_product != len(products) and products[index_product][1] == option_product:
                 product_id = products[index_product][0]
             else:
                 continue
 
+            index_expiration = bisect.bisect_left(expirations_db_values, (option_symbol, str(year)))
+            if index_expiration != len(expirations_db) \
+                    and expirations_db[index_expiration][0] == option_symbol \
+                    and expirations_db[index_expiration][1] == str(year):
+                continue
+
             expirations.append({
                 'option_symbol': option_symbol,
+                'year': year,
                 'product_id': product_id,
                 'underlying_symbol': underlying_symbol,
                 'option_first_avail_date': option_avail_date,
