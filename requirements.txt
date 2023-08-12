@@ -7,3 +7,4 @@ setuptools==68.0.0
 sqlalchemy>=1.4.39
 lxml==4.9.3
 psycopg2-binary==2.9.6
+openpyxl==3.1.2
