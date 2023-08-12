@@ -127,9 +127,6 @@ class Euro_FX:
                 contract = ''
                 product = ''
 
-            if option_type == DailyBulletinSectionsTypes.CALL.value and product == 'MEM' and contract == 'JUN23':
-                s = 0
-
             matches_strike_head = re.match(pattern_strike_head, content)
             if matches_strike_head:
                 values = matches_strike_head.groups()

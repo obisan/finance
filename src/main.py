@@ -1,9 +1,8 @@
 import sys
 
-from bs4 import BeautifulSoup
-
 from constants.enums import ModeExecution
 from db.db_storage import StorageDb
+from helpers.helpers import Helper
 from log.Logger import Logger
 from repository import RepositoryBulletin
 from scenario.dailybulletinanalysis import DailyBulletinAnalysis
@@ -19,32 +18,33 @@ if __name__ == '__main__':
     try:
 
         with open(sys.argv[2], 'r') as file:
-            xml_data = file.read()
-            soup = BeautifulSoup(xml_data, "xml")
-            credentials_filename = soup.find("config").find("connect").text
-            mode = soup.find("config").find("mode").text
-            repository_path = soup.find("config").find("repository").text
+            xml_path = file.read()
+            settings = Helper.get_settings(xml_path)
+
+            filename = settings['filename']
+            mode = settings['mode']
+            repository = settings['repository']
 
             match mode:
                 case ModeExecution.DAILYBULLETIN_SYNC.value:
-                    storageDb = StorageDb(filename=credentials_filename)
-                    repositoryBulletin = RepositoryBulletin(repository_path, Logger())
+                    storageDb = StorageDb(filename=filename)
+                    repositoryBulletin = RepositoryBulletin(repository, Logger())
 
                     dailybulletinSync = DailybulletinSync(storageDb, repositoryBulletin, Logger())
                     dailybulletinSync.sync()
                 case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
-                    storageDb = StorageDb(filename=credentials_filename)
-                    repositoryBulletin = RepositoryBulletin(repository_path, Logger())
+                    storageDb = StorageDb(filename=filename)
+                    repositoryBulletin = RepositoryBulletin(repository, Logger())
 
                     dailybulletinAnalysis = DailyBulletinAnalysis(storageDb, repositoryBulletin, Logger())
                     dailybulletinAnalysis.analysis()
                 case ModeExecution.DAILYBULLETIN_SYNC_PRODUCTS.value:
-                    storageDb = StorageDb(filename=credentials_filename)
+                    storageDb = StorageDb(filename=filename)
 
                     cmeProductSync = DailyBulletinSyncProduct(storageDb, Logger())
                     cmeProductSync.sync()
                 case ModeExecution.DAILYBULLETIN_SYNC_CONTRACTS.value:
-                    storageDb = StorageDb(filename=credentials_filename)
+                    storageDb = StorageDb(filename=filename)
 
                     dailybulletinSyncContract = DailyBulletinSyncContract(storageDb, Logger())
                     dailybulletinSyncContract.sync()
