@@ -1,5 +1,6 @@
 import sys
 
+from cme import CME
 from constants.enums import ModeExecution
 from db.db_storage import StorageDb
 from helpers.helpers import Helper
@@ -29,8 +30,9 @@ if __name__ == '__main__':
                 case ModeExecution.DAILYBULLETIN_SYNC.value:
                     storageDb = StorageDb(filename=filename)
                     repositoryBulletin = RepositoryBulletin(repository, Logger())
+                    cme = CME(storage_db=storageDb, repository=repositoryBulletin)
 
-                    dailybulletinSync = DailybulletinSync(storageDb, repositoryBulletin, Logger())
+                    dailybulletinSync = DailybulletinSync(storageDb, cme, repositoryBulletin, Logger())
                     dailybulletinSync.sync()
                 case ModeExecution.DAILYBULLETIN_ANALYSIS.value:
                     storageDb = StorageDb(filename=filename)

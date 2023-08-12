@@ -2,15 +2,30 @@ import ftplib
 import os
 
 from constants.enums import CME_const
+from constants.enums import Setting
 
 
 class CME:
 
-    def __init__(self, host, user, passwd, repository=None):
+    def __init__(self, host=None, user=None, passwd=None, storage_db=None, repository=None):
         # url = "https://www.cmegroup.com/ftp/bulletin/DailyBulletin_pdf_20211104213.zip"
         # url = "ftp://ftp.cmegroup.com/bulletin/DailyBulletin_pdf_20210901168.zip"
-        self.cme = ftplib.FTP(host=host, user=user, passwd=passwd)
+        if storage_db:
+            self._init_from_storage(storage_db)
+        else:
+            self._init_from_credentials(host, user, passwd)
+
         self.repository = repository
+
+    def _init_from_storage(self, storage_db):
+        host = storage_db.get_setting(Setting.CME_FTP_HOST.value)
+        user = storage_db.get_setting(Setting.CME_FTP_USER.value)
+        passwd = storage_db.get_setting(Setting.CME_FTP_PASSWORD.value)
+
+        self._init_from_credentials(host, user, passwd)
+
+    def _init_from_credentials(self, host, user, passwd):
+        self.cme = ftplib.FTP(host=host, user=user, passwd=passwd)
 
     def get_dailybulletin_list(self):
         files = []

@@ -3,10 +3,8 @@ import os
 import re
 from datetime import datetime
 
-from cme.cme import CME
 from constants.enums import CME_const
 from constants.enums import DailybulletinReportsStatus
-from constants.enums import Setting
 
 
 def binary_search(bulletins, target):
@@ -19,13 +17,10 @@ def binary_search(bulletins, target):
 
 class DailybulletinSync:
 
-    def __init__(self, storage_db, repository=None, logger=None):
-        host = storage_db.get_setting(Setting.CME_FTP_HOST.value)
-        user = storage_db.get_setting(Setting.CME_FTP_USER.value)
-        passwd = storage_db.get_setting(Setting.CME_FTP_PASSWORD.value)
+    def __init__(self, storage_db, cme=None, repository=None, logger=None):
         self.storage_db = storage_db
         self.host_save_path = repository.path  # storage_db.get_setting(Setting.HOST_SAVE_PATH.value)
-        self.cme = CME(host, user, passwd, repository)
+        self.cme = cme
         self.logger = logger
 
         self.s = []
