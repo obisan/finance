@@ -1,0 +1,5 @@
+<config>
+    <mode>DAILYBULLETIN_SYNC</mode>
+    <connect>connect_test.ini</connect>
+    <repository>/mnt/raid/storage/finance_storage/DailyBulletin/test</repository>
+</config>
